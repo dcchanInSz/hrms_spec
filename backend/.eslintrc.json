@@ -1,21 +1,24 @@
 {
-  "env": {
-    "es2022": true,
-    "node": true
-  },
-  "extends": ["eslint:recommended"],
+  "root": true,
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": "latest",
-    "sourceType": "script"
+    "ecmaVersion": 2020,
+    "sourceType": "module"
   },
+  "plugins": ["@typescript-eslint"],
   "rules": {
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-inferrable-types": "off",
+    "@typescript-eslint/no-namespace": "off",
+    "@typescript-eslint/no-empty-interface": "off",
     "indent": ["error", 2],
     "linebreak-style": ["error", "unix"],
     "quotes": ["error", "single"],
     "semi": ["error", "always"],
-    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
     "no-console": "off",
-    "no-undef": "error",
+    "no-undef": "off",
     "curly": "error",
     "eqeqeq": ["error", "always"],
     "no-else-return": "error",
@@ -27,5 +30,5 @@
     "space-before-function-paren": ["error", "never"],
     "space-infix-ops": "error"
   },
-  "ignorePatterns": ["node_modules/", "coverage/", "dist/"]
+  "ignorePatterns": ["dist/", "node_modules/", "coverage/"]
 }
