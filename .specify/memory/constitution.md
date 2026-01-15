@@ -1,50 +1,97 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Speckit Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Code Quality (NON-NEGOTIABLE)
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+代码质量是项目不可妥协的基础。所有代码必须遵循以下原则：
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+- **可读性优先**: 代码必须易于理解，复杂逻辑必须有清晰的注释说明其意图和设计决策
+- **单一职责**: 每个函数、模块、类只做一件事，并将其做好。避免上帝对象和瑞士军刀式的设计
+- **DRY原则**: 避免重复代码，提取公共逻辑为可复用的函数或模块
+- **命名规范**: 变量、函数、类的命名必须自描述，使用准确的英语词汇，避免缩写（除非是广泛认可的缩写）
+- **代码风格统一**: 遵循项目既定的代码风格指南，保持团队代码的一致性
+- **错误处理**: 所有可能的错误必须被显式处理，不允许静默失败。错误信息必须清晰、可操作
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+**理由**: 高质量的代码是项目可维护性的基石，降低长期维护成本，减少bug引入，提升团队协作效率。
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### II. Testing Standards (NON-NEGOTIABLE)
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+测试是代码质量的保障，所有功能必须经过充分测试：
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- **测试驱动开发 (TDD)**: 新功能开发应遵循红-绿-重构循环。先写测试，再实现功能，然后优化代码
+- **单元测试覆盖**: 核心业务逻辑必须达到100%的单元测试覆盖边界条件
+- **测试隔离**: 每个测试必须是独立的，不依赖于其他测试的执行顺序或外部状态
+- **测试数据管理**: 使用工厂模式或fixture生成测试数据，避免硬编码的魔法数值
+- **测试可读性**: 测试代码同样需要清晰，测试名称必须描述测试的场景和预期结果
+- **Mock原则**: 仅mock外部依赖，保持测试对业务逻辑的验证价值
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**理由**: 充分的测试保障代码变更的安全性，使重构成为可能，为持续集成提供信心基础。
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### III. User Experience Consistency
+
+用户体验的一致性是产品专业度的体现：
+
+- **视觉一致性**: 所有UI组件遵循统一的设计语言，使用相同的颜色、间距、字体、阴影等视觉元素
+- **交互一致性**: 类似的功能使用类似的交互模式，用户不需要重新学习如何完成相似的任务
+- **反馈一致性**: 用户的每个操作都应有明确的反馈，成功、错误、加载状态使用统一的视觉表现
+- **文案一致性**: 按钮标签、提示信息、错误文案使用统一的措辞风格和术语
+- **响应式适配**: 在不同设备和屏幕尺寸上保持一致的功能可用性和视觉呈现
+- **无障碍访问**: 遵循WCAG标准，确保产品对所有用户可用，包括使用辅助技术的用户
+
+**理由**: 一致的用户体验减少用户认知负担，提升产品专业形象，增强用户信任和满意度。
+
+### IV. Performance Requirements
+
+性能直接影响用户体验和产品竞争力：
+
+- **响应时间**: 用户界面交互响应必须在100ms以内，复杂计算可显示加载状态但最长不超过3秒
+- **资源效率**: 代码应避免内存泄漏和不必要的资源占用，长时间运行不应出现性能退化
+- **懒加载策略**: 非首屏内容和非关键资源采用懒加载，优化首屏加载时间
+- **缓存策略**: 合理使用缓存减少重复计算和网络请求，缓存失效策略必须清晰
+- **性能监控**: 关键性能指标必须可观测，建立性能基准并进行持续监控
+- **性能预算**: 明确性能指标预算（如JS包大小、FCP、LCP、TBT等），超出预算需要评审和优化
+
+**理由**: 性能是用户体验的关键因素，影响用户留存、搜索引擎排名和整体产品口碑。
+
+## Development Workflow
+
+### 代码提交规范
+
+- 提交信息必须清晰描述变更内容和目的
+- 每个提交应保持原子性，包含逻辑上完整的变更
+- 遵循Conventional Commits格式规范
+
+### 代码审查标准
+
+- 所有代码变更必须经过审查后才能合并
+- 审查重点：逻辑正确性、边界条件处理、代码风格、测试充分性
+- 审查者有责任提出建设性意见，而非仅仅批准
+
+### 发布流程
+
+- 遵循语义化版本号规范
+- 每次发布必须有清晰的变更日志
+- 重大变更必须提前通知并提供迁移指南
+
+## Quality Gates
+
+以下条件必须全部满足才能合并代码：
+
+1. 所有单元测试通过
+2. 集成测试覆盖关键用户路径
+3. 代码风格检查通过
+4. 无安全漏洞报告
+5. 性能基准未退化
+6. 文档已同步更新
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+本宪法是项目开发的核心准则，具有最高指导地位。
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+- **优先级**: 当本宪法与其他规范冲突时，以本宪法为准
+- **修订程序**: 原则的修改需要经过充分讨论，并在必要时提供过渡方案
+- **版本管理**: 本宪法遵循语义化版本管理
+- **合规性**: 所有PR和代码审查必须验证对本宪法的遵循程度
+
+**Version**: 1.0.0 | **Ratified**: 2026-01-14 | **Last Amended**: 2026-01-14

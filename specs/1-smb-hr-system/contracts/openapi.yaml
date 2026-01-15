@@ -1,0 +1,754 @@
+openapi: 3.0.3
+info:
+  title: 小企业人力资源管理系统 API
+  description: HR 管理系统后端 API 规范
+  version: 1.0.0
+  contact:
+    name: HR System Team
+
+servers:
+  - url: http://localhost:3000/api
+    description: 本地开发服务器
+  - url: https://api.hr-system.example.com/api
+    description: 生产服务器
+
+tags:
+  - name: 认证
+    description: 用户登录、登出、令牌刷新
+  - name: 员工
+    description: 员工信息管理
+  - name: 请假
+    description: 请假申请与审批
+  - name: 部门
+    description: 部门架构管理
+  - name: 职位
+    description: 职位管理
+  - name: 报表
+    description: HR 报表与统计
+  - name: 通知
+    description: 系统通知
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # 通用
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: 错误消息
+        code:
+          type: string
+          description: 错误代码
+        details:
+          type: object
+          description: 详细信息
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
+        totalPages:
+          type: integer
+          example: 5
+
+    # 认证
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserSummary'
+
+    # 员工
+    Employee:
+      type: object
+      required:
+        - name
+        - email
+        - departmentId
+        - positionId
+      properties:
+        id:
+          type: string
+          format: uuid
+        employeeNo:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        departmentId:
+          type: string
+          format: uuid
+        positionId:
+          type: string
+          format: uuid
+        managerId:
+          type: string
+          format: uuid
+          nullable: true
+        hireDate:
+          type: string
+          format: date
+        role:
+          type: string
+          enum:
+            - employee
+            - manager
+            - hr
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+
+    UserSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        avatarUrl:
+          type: string
+
+    EmployeeCreateRequest:
+      type: object
+      required:
+        - name
+        - email
+        - departmentId
+        - positionId
+        - hireDate
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        departmentId:
+          type: string
+          format: uuid
+        positionId:
+          type: string
+          format: uuid
+        managerId:
+          type: string
+          format: uuid
+        hireDate:
+          type: string
+          format: date
+        role:
+          type: string
+          enum:
+            - employee
+            - manager
+            - hr
+
+    # 请假
+    LeaveRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        employeeId:
+          type: string
+          format: uuid
+        leaveType:
+          type: string
+          enum:
+            - annual
+            - sick
+            - personal
+            - other
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        days:
+          type: number
+        reason:
+          type: string
+        status:
+          type: string
+          enum:
+            - pending
+            - approved
+            - rejected
+            - withdrawn
+        approverId:
+          type: string
+          format: uuid
+        approvedAt:
+          type: string
+          format: date-time
+
+    LeaveRequestCreate:
+      type: object
+      required:
+        - leaveType
+        - startDate
+        - endDate
+        - reason
+      properties:
+        leaveType:
+          type: string
+          enum:
+            - annual
+            - sick
+            - personal
+            - other
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        reason:
+          type: string
+
+    LeaveApproval:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum:
+            - approve
+            - reject
+        reason:
+          type: string
+
+    LeaveBalance:
+      type: object
+      properties:
+        leaveType:
+          type: string
+        year:
+          type: integer
+        totalDays:
+          type: number
+        usedDays:
+          type: number
+        remainingDays:
+          type: number
+
+    # 部门
+    Department:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        code:
+          type: string
+        description:
+          type: string
+        parentId:
+          type: string
+          format: uuid
+        managerId:
+          type: string
+          format: uuid
+
+    # 通知
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        link:
+          type: string
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+  parameters:
+    pageParam:
+      in: query
+      name: page
+      schema:
+        type: integer
+        default: 1
+      description: 页码
+    limitParam:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        default: 20
+      description: 每页数量
+    idParam:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: 资源 ID
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ==================== 认证 ====================
+  /auth/login:
+    post:
+      tags:
+        - 认证
+      summary: 用户登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: 用户名或密码错误
+
+  /auth/me:
+    get:
+      tags:
+        - 认证
+      summary: 获取当前用户信息
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSummary'
+
+  # ==================== 员工 ====================
+  /employees:
+    get:
+      tags:
+        - 员工
+      summary: 获取员工列表
+      parameters:
+        - in: query
+          name: departmentId
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - active
+              - inactive
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/limitParam'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Employee'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - 员工
+      summary: 创建员工
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeCreateRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+
+  /employees/{id}:
+    get:
+      tags:
+        - 员工
+      summary: 获取员工详情
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+        '404':
+          description: 不存在
+
+    put:
+      tags:
+        - 员工
+      summary: 更新员工
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeCreateRequest'
+      responses:
+        '200':
+          description: 更新成功
+
+    delete:
+      tags:
+        - 员工
+      summary: 删除员工（软删除）
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        '200':
+          description: 删除成功
+
+  /employees/me:
+    get:
+      tags:
+        - 员工
+      summary: 获取当前登录员工信息
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+
+  /employees/me/balance:
+    get:
+      tags:
+        - 员工
+      summary: 获取当前用户请假余额
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LeaveBalance'
+
+  /employees/{id}/balance:
+    get:
+      tags:
+        - 员工
+      summary: 获取指定员工请假余额（仅 HR/经理）
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        '200':
+          description: 成功
+
+  # ==================== 请假 ====================
+  /leave-requests:
+    get:
+      tags:
+        - 请假
+      summary: 获取请假申请列表
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - pending
+              - approved
+              - rejected
+              - withdrawn
+        - in: query
+          name: leaveType
+          schema:
+            type: string
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/limitParam'
+      responses:
+        '200':
+          description: 成功
+
+    post:
+      tags:
+        - 请假
+      summary: 提交请假申请
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaveRequestCreate'
+      responses:
+        '201':
+          description: 申请成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaveRequest'
+
+  /leave-requests/pending:
+    get:
+      tags:
+        - 请假
+      summary: 获取待审批列表（经理/HR）
+      responses:
+        '200':
+          description: 成功
+
+  /leave-requests/{id}:
+    get:
+      tags:
+        - 请假
+      summary: 获取请假详情
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        '200':
+          description: 成功
+
+    delete:
+      tags:
+        - 请假
+      summary: 撤回请假申请
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        '200':
+          description: 撤回成功
+
+  /leave-requests/{id}/approve:
+    post:
+      tags:
+        - 请假
+      summary: 审批请假申请
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaveApproval'
+      responses:
+        '200':
+          description: 审批成功
+
+  # ==================== 部门 ====================
+  /departments:
+    get:
+      tags:
+        - 部门
+      summary: 获取部门列表
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Department'
+
+    post:
+      tags:
+        - 部门
+      summary: 创建部门
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Department'
+      responses:
+        '201':
+          description: 创建成功
+
+  /departments/{id}:
+    get:
+      tags:
+        - 部门
+      summary: 获取部门详情
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        '200':
+          description: 成功
+
+    put:
+      tags:
+        - 部门
+      summary: 更新部门
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        '200':
+          description: 更新成功
+
+    delete:
+      tags:
+        - 部门
+      summary: 删除部门
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        '200':
+          description: 删除成功
+
+  # ==================== 职位 ====================
+  /positions:
+    get:
+      tags:
+        - 职位
+      summary: 获取职位列表
+      responses:
+        '200':
+          description: 成功
+
+    post:
+      tags:
+        - 职位
+      summary: 创建职位
+      responses:
+        '201':
+          description: 创建成功
+
+  /positions/{id}:
+    get:
+      tags:
+        - 职位
+      summary: 获取职位详情
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        '200':
+          description: 成功
+
+  # ==================== 报表 ====================
+  /reports/headcount:
+    get:
+      tags:
+        - 报表
+      summary: 员工人数统计报表
+      responses:
+        '200':
+          description: 成功
+
+  /reports/leave-utilization:
+    get:
+      tags:
+        - 报表
+      summary: 请假利用率报表
+      responses:
+        '200':
+          description: 成功
+
+  # ==================== 通知 ====================
+  /notifications:
+    get:
+      tags:
+        - 通知
+      summary: 获取通知列表
+      parameters:
+        - in: query
+          name: unreadOnly
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: 成功
+
+  /notifications/{id}/read:
+    post:
+      tags:
+        - 通知
+      summary: 标记通知为已读
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        '200':
+          description: 成功
+
+  /notifications/read-all:
+    post:
+      tags:
+        - 通知
+      summary: 标记所有通知为已读
+      responses:
+        '200':
+          description: 成功
