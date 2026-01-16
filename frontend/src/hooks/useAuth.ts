@@ -1,11 +1,12 @@
 import { useContext } from 'react';
 import AuthContext from '../contexts/AuthContext';
+import type { AuthContextType } from '../types/context';
 
 /**
  * 认证 Hook
  * 提供认证相关的状态和方法
  */
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
 
   if (!context) {

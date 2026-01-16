@@ -13,33 +13,33 @@ const api = axios.create({
 
 // 请求拦截器 - 添加认证 token
 api.interceptors.request.use(
-  (config) => {
+  (config: any) => {
     const token = localStorage.getItem('token');
-    if (token) {
+    if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
+  (error: any) => {
     return Promise.reject(error);
   }
 );
 
 // 响应拦截器 - 处理错误
 api.interceptors.response.use(
-  (response) => {
+  (response: any) => {
     // 对于 POST/PUT/DELETE 请求，返回完整响应以便获取 data
     if (response.config.method === 'post' || response.config.method === 'put' || response.config.method === 'delete') {
       return response;
     }
     return response.data;
   },
-  (error) => {
+  (error: any) => {
     if (error.response) {
       const { status, data, config } = error.response;
 
       // 处理 401 未授权 - 排除登录请求
-      if (status === 401 && !config.url.includes('/auth/login')) {
+      if (status === 401 && !config.url?.includes('/auth/login')) {
         // 检查是否还有有效的 token（可能是有其他标签页刷新了）
         const currentToken = localStorage.getItem('token');
         const currentUser = localStorage.getItem('user');
@@ -85,7 +85,7 @@ api.interceptors.response.use(
 
 // 认证 API
 export const authAPI = {
-  login: (email, password) =>
+  login: (email: string, password: string) =>
     api.post('/auth/login', { email, password }),
 
   logout: () =>
@@ -94,10 +94,10 @@ export const authAPI = {
   getProfile: () =>
     api.get('/auth/profile'),
 
-  updateProfile: (data) =>
+  updateProfile: (data: any) =>
     api.put('/auth/profile', data),
 
-  changePassword: (currentPassword, newPassword) =>
+  changePassword: (currentPassword: string, newPassword: string) =>
     api.put('/auth/password', { currentPassword, newPassword }),
 };
 
@@ -106,31 +106,31 @@ export const employeeAPI = {
   getProfile: () =>
     api.get('/employees/me'),
 
-  updateProfile: (data) =>
+  updateProfile: (data: any) =>
     api.put('/employees/me', data),
 
-  getTeamMembers: (managerId) =>
+  getTeamMembers: (managerId?: number) =>
     api.get(`/teams/members${managerId ? `?managerId=${managerId}` : ''}`),
 
-  getEmployees: (params) =>
+  getEmployees: (params?: any) =>
     api.get('/admin/employees', { params }),
 
-  getEmployee: (id) =>
+  getEmployee: (id: number) =>
     api.get(`/admin/employees/${id}`),
 
-  createEmployee: (data) =>
+  createEmployee: (data: any) =>
     api.post('/admin/employees', data),
 
-  updateEmployee: (id, data) =>
+  updateEmployee: (id: number, data: any) =>
     api.put(`/admin/employees/${id}`, data),
 
-  deleteEmployee: (id) =>
+  deleteEmployee: (id: number) =>
     api.delete(`/admin/employees/${id}`),
 };
 
 // 请假 API
 export const leaveAPI = {
-  getMyLeaves: (params) =>
+  getMyLeaves: (params?: any) =>
     api.get('/leaves', { params }),
 
   getLeaveTypes: () =>
@@ -142,65 +142,65 @@ export const leaveAPI = {
   getPolicies: () =>
     api.get('/leaves/policies'),
 
-  createRequest: (data) =>
+  createRequest: (data: any) =>
     api.post('/leaves', data),
 
-  cancelRequest: (id) =>
+  cancelRequest: (id: number) =>
     api.put(`/leaves/${id}/cancel`),
 
   // 年度结转 (HR 专用)
-  yearEndRollover: (data) =>
+  yearEndRollover: (data: any) =>
     api.post('/leaves/year-end-rollover', data),
 
-  yearEndRolloverBulk: (data) =>
+  yearEndRolloverBulk: (data: any) =>
     api.post('/leaves/year-end-rollover/bulk', data),
 
   // 经理审批
   getPendingApprovals: () =>
     api.get('/leaves/pending'),
 
-  approve: (id, data) =>
+  approve: (id: number, data: any) =>
     api.put(`/leaves/${id}/approve`, data),
 
-  reject: (id, reason) =>
+  reject: (id: number, reason: string) =>
     api.put(`/leaves/${id}/reject`, { reason }),
 
   // HR 管理
-  getAllLeaves: (params) =>
+  getAllLeaves: (params?: any) =>
     api.get('/admin/leaves', { params }),
 
-  getTeamLeaves: (params) =>
+  getTeamLeaves: (params?: any) =>
     api.get('/leaves/team', { params }),
 };
 
 // 工资单 API
 export const paystubAPI = {
-  getMyPaystubs: (params) =>
+  getMyPaystubs: (params?: any) =>
     api.get('/paystubs', { params }),
 
-  getPaystub: (id) =>
+  getPaystub: (id: number) =>
     api.get(`/paystubs/${id}`),
 
   // HR 管理
-  getAllPaystubs: (params) =>
+  getAllPaystubs: (params?: any) =>
     api.get('/admin/paystubs', { params }),
 
-  createPaystub: (data) =>
+  createPaystub: (data: any) =>
     api.post('/admin/paystubs', data),
 
-  deletePaystub: (id) =>
+  deletePaystub: (id: number) =>
     api.delete(`/admin/paystubs/${id}`),
 };
 
 // 通知 API
 export const notificationAPI = {
-  getNotifications: (params) =>
+  getNotifications: (params?: any) =>
     api.get('/notifications', { params }),
 
   getUnreadCount: () =>
     api.get('/notifications/unread-count'),
 
-  markAsRead: (id) =>
+  markAsRead: (id: number) =>
     api.put(`/notifications/${id}/read`),
 
   markAllAsRead: () =>
@@ -212,34 +212,34 @@ export const departmentAPI = {
   getDepartments: () =>
     api.get('/admin/departments'),
 
-  getDepartment: (id) =>
+  getDepartment: (id: number) =>
     api.get(`/admin/departments/${id}`),
 
-  createDepartment: (data) =>
+  createDepartment: (data: any) =>
     api.post('/admin/departments', data),
 
-  updateDepartment: (id, data) =>
+  updateDepartment: (id: number, data: any) =>
     api.put(`/admin/departments/${id}`, data),
 
-  deleteDepartment: (id) =>
+  deleteDepartment: (id: number) =>
     api.delete(`/admin/departments/${id}`),
 };
 
 // 职位 API
 export const positionAPI = {
-  getAllPositions: (params) =>
+  getAllPositions: (params?: any) =>
     api.get('/admin/positions', { params }),
 
-  getPosition: (id) =>
+  getPosition: (id: number) =>
     api.get(`/admin/positions/${id}`),
 
-  createPosition: (data) =>
+  createPosition: (data: any) =>
     api.post('/admin/positions', data),
 
-  updatePosition: (id, data) =>
+  updatePosition: (id: number, data: any) =>
     api.put(`/admin/positions/${id}`, data),
 
-  deletePosition: (id) =>
+  deletePosition: (id: number) =>
     api.delete(`/admin/positions/${id}`),
 };
 
@@ -251,13 +251,13 @@ export const reportAPI = {
   getTeamAnalytics: () =>
     api.get('/reports/team-analytics'),
 
-  getHeadcount: (params) =>
+  getHeadcount: (params?: any) =>
     api.get('/reports/headcount', { params }),
 
-  getLeaveUtilization: (params) =>
+  getLeaveUtilization: (params?: any) =>
     api.get('/reports/leave-utilization', { params }),
 
-  exportReport: (type, format, params) =>
+  exportReport: (type: string, format: string, params?: any) =>
     api.get(`/reports/export/${type}`, {
       params: { ...params, format },
       responseType: 'blob',
@@ -266,22 +266,22 @@ export const reportAPI = {
 
 // 审计日志 API
 export const auditAPI = {
-  getAuditLogs: (params) =>
+  getAuditLogs: (params?: any) =>
     api.get('/admin/audit-logs', { params }),
 };
 
 // 团队 API (经理功能)
 export const teamAPI = {
-  getDashboard: (params) =>
+  getDashboard: (params?: any) =>
     api.get('/teams/dashboard', { params }),
 
-  getMembers: (params) =>
+  getMembers: (params?: any) =>
     api.get('/teams/members', { params }),
 
-  getLeaveRequests: (params) =>
+  getLeaveRequests: (params?: any) =>
     api.get('/teams/leave-requests', { params }),
 
-  getCalendar: (params) =>
+  getCalendar: (params?: any) =>
     api.get('/teams/calendar', { params }),
 
   getPendingApprovals: () =>
@@ -290,34 +290,34 @@ export const teamAPI = {
 
 // 组织架构 API
 export const orgAPI = {
-  getOrgChart: (params) =>
+  getOrgChart: (params?: any) =>
     api.get('/org/chart', { params }),
 
-  getDepartmentSubtree: (departmentId, params) =>
+  getDepartmentSubtree: (departmentId: number, params?: any) =>
     api.get(`/org/chart/${departmentId}`, { params }),
 
-  getReportingChain: (employeeId) =>
+  getReportingChain: (employeeId: number) =>
     api.get(`/org/reporting-chain/${employeeId}`),
 
-  reassignManager: (data) =>
+  reassignManager: (data: any) =>
     api.put('/org/reassign-manager', data),
 
-  moveDepartment: (data) =>
+  moveDepartment: (data: any) =>
     api.put('/org/move-department', data),
 
-  getDepartmentEmployees: (departmentId, params) =>
+  getDepartmentEmployees: (departmentId: number, params?: any) =>
     api.get(`/org/employees/${departmentId}`, { params }),
 
   getStatistics: () =>
     api.get('/org/statistics'),
 
-  searchEmployees: (params) =>
+  searchEmployees: (params?: any) =>
     api.get('/org/search', { params }),
 
-  getChanges: (params) =>
+  getChanges: (params?: any) =>
     api.get('/org/changes', { params }),
 
-  exportOrgChart: (format, params) =>
+  exportOrgChart: (format: string, params?: any) =>
     api.get('/org/export', {
       params: { ...params, format },
       responseType: format === 'csv' ? 'blob' : 'json',

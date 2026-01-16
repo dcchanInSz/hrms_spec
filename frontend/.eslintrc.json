@@ -6,22 +6,30 @@
   },
   "extends": [
     "eslint:recommended",
+    "@typescript-eslint/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended"
   ],
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": "latest",
-    "sourceType": "module"
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
   },
-  "plugins": ["react", "react-hooks", "react-refresh"],
+  "plugins": ["@typescript-eslint", "react", "react-hooks", "react-refresh"],
   "rules": {
     "react/react-in-jsx-scope": "off",
     "react/jsx-uses-react": "off",
+    "react/prop-types": "off",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/explicit-function-return-type": "warn",
     "indent": ["error", 2],
     "linebreak-style": ["error", "unix"],
     "quotes": ["error", "single"],
     "semi": ["error", "always"],
-    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-unused-vars": "off",
     "no-console": "off",
     "no-undef": "error",
     "curly": "error",
@@ -38,5 +46,5 @@
       { "allowConstantExport": true }
     ]
   },
-  "ignorePatterns": ["node_modules/", "dist/", "coverage/"]
+  "ignorePatterns": ["node_modules/", "dist/", "coverage/", "*.js"]
 }

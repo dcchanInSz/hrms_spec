@@ -4,10 +4,37 @@
  */
 
 /**
+ * 验证规则类型
+ */
+export type ValidationRule = string | [string, ...any[]] | ((value: any, formData?: any) => string | null);
+
+/**
+ * 表单数据接口
+ */
+export interface FormData {
+  [key: string]: any;
+}
+
+/**
+ * 验证模式接口
+ */
+export interface ValidationSchema {
+  [fieldName: string]: ValidationRule[];
+}
+
+/**
+ * 验证结果接口
+ */
+export interface ValidationResult {
+  isValid: boolean;
+  errors: { [field: string]: string };
+}
+
+/**
  * 验证规则
  */
 const rules = {
-  required: (value, message = '此字段为必填项') => {
+  required: (value: any, message = '此字段为必填项'): string | null => {
     if (value === undefined || value === null || value === '') {
       return message;
     }
@@ -17,7 +44,7 @@ const rules = {
     return null;
   },
 
-  email: (value, message = '请输入有效的邮箱地址') => {
+  email: (value: any, message = '请输入有效的邮箱地址'): string | null => {
     if (!value) return null;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(value)) {
@@ -26,7 +53,7 @@ const rules = {
     return null;
   },
 
-  phone: (value, message = '请输入有效的手机号码') => {
+  phone: (value: any, message = '请输入有效的手机号码'): string | null => {
     if (!value) return null;
     const phoneRegex = /^1[3-9]\d{9}$/;
     if (!phoneRegex.test(value)) {
@@ -35,7 +62,7 @@ const rules = {
     return null;
   },
 
-  minLength: (min, message) => (value) => {
+  minLength: (min: number, message?: string) => (value: any): string | null => {
     if (!value) return null;
     if (typeof value === 'string' && value.length < min) {
       return message || `最少需要 ${min} 个字符`;
@@ -43,7 +70,7 @@ const rules = {
     return null;
   },
 
-  maxLength: (max, message) => (value) => {
+  maxLength: (max: number, message?: string) => (value: any): string | null => {
     if (!value) return null;
     if (typeof value === 'string' && value.length > max) {
       return message || `最多只能输入 ${max} 个字符`;
@@ -51,7 +78,7 @@ const rules = {
     return null;
   },
 
-  min: (min, message) => (value) => {
+  min: (min: number, message?: string) => (value: any): string | null => {
     if (value === undefined || value === null || value === '') return null;
     if (Number(value) < min) {
       return message || `最小值为 ${min}`;
@@ -59,7 +86,7 @@ const rules = {
     return null;
   },
 
-  max: (max, message) => (value) => {
+  max: (max: number, message?: string) => (value: any): string | null => {
     if (value === undefined || value === null || value === '') return null;
     if (Number(value) > max) {
       return message || `最大值为 ${max}`;
@@ -67,7 +94,7 @@ const rules = {
     return null;
   },
 
-  pattern: (regex, message) => (value) => {
+  pattern: (regex: RegExp | string, message?: string) => (value: any): string | null => {
     if (!value) return null;
     if (typeof regex === 'string') {
       regex = new RegExp(regex);
@@ -78,7 +105,7 @@ const rules = {
     return null;
   },
 
-  date: (message = '请输入有效的日期') => (value) => {
+  date: (message = '请输入有效的日期') => (value: any): string | null => {
     if (!value) return null;
     const date = new Date(value);
     if (isNaN(date.getTime())) {
@@ -87,7 +114,7 @@ const rules = {
     return null;
   },
 
-  futureDate: (message = '日期必须是将来的时间') => (value) => {
+  futureDate: (message = '日期必须是将来的时间') => (value: any): string | null => {
     if (!value) return null;
     const date = new Date(value);
     if (isNaN(date.getTime())) return '请输入有效的日期';
@@ -97,8 +124,8 @@ const rules = {
     return null;
   },
 
-  afterDate: (afterField, message) => (value, formData) => {
-    if (!value || !formData[afterField]) return null;
+  afterDate: (afterField: string, message?: string) => (value: any, formData?: any): string | null => {
+    if (!value || !formData?.[afterField]) return null;
     const start = new Date(formData[afterField]);
     const end = new Date(value);
     if (end <= start) {
@@ -107,7 +134,7 @@ const rules = {
     return null;
   },
 
-  numeric: (message = '请输入数字') => (value) => {
+  numeric: (message = '请输入数字') => (value: any): string | null => {
     if (!value) return null;
     if (isNaN(Number(value))) {
       return message;
@@ -115,7 +142,7 @@ const rules = {
     return null;
   },
 
-  integer: (message = '请输入整数') => (value) => {
+  integer: (message = '请输入整数') => (value: any): string | null => {
     if (!value) return null;
     if (!Number.isInteger(Number(value))) {
       return message;
@@ -126,19 +153,19 @@ const rules = {
 
 /**
  * 验证单个字段
- * @param {*} value - 字段值
- * @param {Array} fieldRules - 验证规则数组
- * @param {Object} formData - 表单数据（用于跨字段验证）
- * @returns {string|null} 错误信息或 null
+ * @param value - 字段值
+ * @param fieldRules - 验证规则数组
+ * @param formData - 表单数据（用于跨字段验证）
+ * @returns 错误信息或 null
  */
-function validateField(value, fieldRules, formData = {}) {
+function validateField(value: any, fieldRules: ValidationRule[], formData: any = {}): string | null {
   for (const rule of fieldRules) {
-    let error;
+    let error: string | null = null;
     if (typeof rule === 'string') {
       error = rules.required(value);
     } else if (Array.isArray(rule)) {
       const [ruleName, ...args] = rule;
-      const ruleFn = rules[ruleName];
+      const ruleFn = (rules as any)[ruleName];
       if (ruleFn) {
         error = ruleFn(...args)(value, formData);
       }
@@ -152,12 +179,12 @@ function validateField(value, fieldRules, formData = {}) {
 
 /**
  * 验证整个表单
- * @param {Object} formData - 表单数据
- * @param {Object} schema - 验证模式 { fieldName: [rules] }
- * @returns {Object} { isValid, errors: { field: error } }
+ * @param formData - 表单数据
+ * @param schema - 验证模式 { fieldName: [rules] }
+ * @returns 验证结果对象
  */
-function validateForm(formData, schema) {
-  const errors = {};
+function validateForm(formData: any, schema: ValidationSchema): ValidationResult {
+  const errors: { [field: string]: string } = {};
 
   for (const [field, fieldRules] of Object.entries(schema)) {
     const error = validateField(formData[field], fieldRules, formData);
@@ -177,43 +204,43 @@ function validateForm(formData, schema) {
  */
 const validationPatterns = {
   employeeNo: {
-    required: ['required'],
-    pattern: [/^[A-Z0-9]{3,20}$/, '员工编号只能是字母和数字，长度 3-20 位'],
+    required: ['required'] as const,
+    pattern: [/^[A-Z0-9]{3,20}$/, '员工编号只能是字母和数字，长度 3-20 位'] as const,
   },
   name: {
-    required: ['required'],
-    minLength: [2, '姓名至少 2 个字符'],
-    maxLength: [50, '姓名最多 50 个字符'],
+    required: ['required'] as const,
+    minLength: [2, '姓名至少 2 个字符'] as const,
+    maxLength: [50, '姓名最多 50 个字符'] as const,
   },
   email: {
-    required: ['required'],
-    email: true,
+    required: ['required'] as const,
+    email: true as const,
   },
   phone: {
-    phone: true,
+    phone: true as const,
   },
   dateRange: {
-    required: ['required'],
-    afterDate: ['start_date', '结束日期必须晚于开始日期'],
+    required: ['required'] as const,
+    afterDate: ['start_date', '结束日期必须晚于开始日期'] as const,
   },
   leaveDays: {
-    required: ['required'],
-    numeric: true,
-    min: [0.5, '请假天数不能少于 0.5 天'],
-    max: [30, '单次请假不能超过 30 天'],
+    required: ['required'] as const,
+    numeric: true as const,
+    min: [0.5, '请假天数不能少于 0.5 天'] as const,
+    max: [30, '单次请假不能超过 30 天'] as const,
   },
   password: {
-    required: ['required'],
-    minLength: [6, '密码至少 6 个字符'],
-    maxLength: [50, '密码最多 50 个字符'],
+    required: ['required'] as const,
+    minLength: [6, '密码至少 6 个字符'] as const,
+    maxLength: [50, '密码最多 50 个字符'] as const,
   },
   salary: {
-    numeric: true,
-    min: [0, '薪资不能为负数'],
+    numeric: true as const,
+    min: [0, '薪资不能为负数'] as const,
   },
 };
 
-module.exports = {
+export {
   rules,
   validateField,
   validateForm,

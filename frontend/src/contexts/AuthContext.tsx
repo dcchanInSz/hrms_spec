@@ -1,13 +1,21 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { authAPI, employeeAPI } from '../services/api';
+import type { AuthContextType } from '../types/context';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext<AuthContextType | null>(null);
+
+/**
+ * 认证上下文提供者 Props
+ */
+interface AuthProviderProps {
+  children: ReactNode;
+}
 
 /**
  * 认证上下文提供者
  */
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   // 从本地存储恢复认证状态
@@ -34,12 +42,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   // 登录
-  const login = useCallback(async (email, password) => {
+  const login = useCallback(async (email: string, password: string) => {
     const response = await authAPI.login(email, password);
     // 后端返回 { success: true, data: { token, user }, message: '...' }
     // POST 请求返回 axios 响应对象，结构是 { data: {...}, status: 200, ... }
     // response.data 是后端返回的 JSON: { success, data: { token, user }, message }
-    const responseData = response.data;
+    const responseData = response.data as any;
     const authData = responseData.data;  // authData = { token, user }
     const { token, user: userData } = authData;
     if (!token) {
@@ -68,10 +76,10 @@ export function AuthProvider({ children }) {
   }, []);
 
   // 更新用户信息
-  const updateUser = useCallback(async (data) => {
+  const updateUser = useCallback(async (data: any) => {
     const response = await employeeAPI.updateProfile(data);
     // PUT 请求返回完整响应，需要访问 response.data
-    const updatedUser = { ...user, ...response.data };
+    const updatedUser = { ...(user as any), ...(response.data as any) };
 
     localStorage.setItem('user', JSON.stringify(updatedUser));
     setUser(updatedUser);
@@ -80,13 +88,13 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   // 检查是否有特定权限
-  const hasPermission = useCallback((permission) => {
+  const hasPermission = useCallback((permission: string): boolean => {
     if (!user) return false;
 
     // HR 拥有所有权限
     if (user.role === 'hr') return true;
 
-    const rolePermissions = {
+    const rolePermissions: Record<string, string[]> = {
       employee: [
         'profile:read',
         'profile:write',
@@ -111,13 +119,13 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   // 检查是否有特定角色
-  const hasRole = useCallback((roles) => {
+  const hasRole = useCallback((roles: string | string[]): boolean => {
     if (!user) return false;
     const roleList = Array.isArray(roles) ? roles : [roles];
     return roleList.includes(user.role);
   }, [user]);
 
-  const value = {
+  const value: AuthContextType = {
     user,
     loading,
     login,
@@ -138,7 +146,7 @@ export function AuthProvider({ children }) {
 /**
  * 使用认证上下文
  */
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');

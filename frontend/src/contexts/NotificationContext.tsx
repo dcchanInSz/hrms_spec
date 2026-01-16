@@ -1,23 +1,31 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { notificationAPI } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
+import type { NotificationContextType } from '../types/context';
 
-const NotificationContext = createContext(null);
+const NotificationContext = createContext<NotificationContextType | null>(null);
+
+/**
+ * 通知上下文提供者 Props
+ */
+interface NotificationProviderProps {
+  children: ReactNode;
+}
 
 /**
  * 通知上下文提供者
  */
-export function NotificationProvider({ children }) {
-  const [notifications, setNotifications] = useState([]);
+export function NotificationProvider({ children }: NotificationProviderProps) {
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
   // 获取通知列表
-  const fetchNotifications = useCallback(async (params = {}) => {
+  const fetchNotifications = useCallback(async (params: any = {}) => {
     setLoading(true);
     try {
-      const response = await notificationAPI.getNotifications(params);
+      const response = await notificationAPI.getNotifications(params) as any;
       setNotifications(response.data?.data || []);
       return response;
     } finally {
@@ -28,9 +36,9 @@ export function NotificationProvider({ children }) {
   // 获取未读数量
   const fetchUnreadCount = useCallback(async () => {
     try {
-      const response = await notificationAPI.getUnreadCount();
+      const response = await notificationAPI.getUnreadCount() as any;
       setUnreadCount(response.data?.data?.count || 0);
-    } catch (error) {
+    } catch (error: any) {
       // 401 是正常的，用户未登录时不需要显示错误
       if (error.status !== 401) {
         console.error('Failed to fetch unread count:', error);
@@ -47,7 +55,7 @@ export function NotificationProvider({ children }) {
   }, [isAuthenticated, fetchUnreadCount, fetchNotifications]);
 
   // 标记为已读
-  const markAsRead = useCallback(async (id) => {
+  const markAsRead = useCallback(async (id: number) => {
     try {
       await notificationAPI.markAsRead(id);
       setNotifications(prev =>
@@ -71,7 +79,7 @@ export function NotificationProvider({ children }) {
   }, []);
 
   // 添加新通知
-  const addNotification = useCallback((notification) => {
+  const addNotification = useCallback((notification: any) => {
     setNotifications(prev => [notification, ...prev]);
     if (!notification.isRead) {
       setUnreadCount(prev => prev + 1);
@@ -79,7 +87,7 @@ export function NotificationProvider({ children }) {
   }, []);
 
   // 移除通知
-  const removeNotification = useCallback((id) => {
+  const removeNotification = useCallback((id: number) => {
     setNotifications(prev => {
       const notification = prev.find(n => n.id === id);
       if (notification && !notification.isRead) {
@@ -89,12 +97,11 @@ export function NotificationProvider({ children }) {
     });
   }, []);
 
-  const value = {
+  const value: NotificationContextType = {
     notifications,
     unreadCount,
     loading,
     fetchNotifications,
-    fetchUnreadCount,
     markAsRead,
     markAllAsRead,
     addNotification,
@@ -111,7 +118,7 @@ export function NotificationProvider({ children }) {
 /**
  * 使用通知上下文
  */
-export function useNotification() {
+export function useNotification(): NotificationContextType {
   const context = useContext(NotificationContext);
   if (!context) {
     throw new Error('useNotification must be used within a NotificationProvider');
