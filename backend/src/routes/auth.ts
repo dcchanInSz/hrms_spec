@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { generateToken } from '../utils/jwt';
-import verifyPassword from '../utils/password';
+import { comparePassword } from '../utils/password';
 import { authenticate as authMiddleware } from '../middleware/auth';
 import { success } from '../utils/response';
 import EmployeeService from '../services/employeeService';
@@ -35,7 +35,7 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
     }
 
     // 验证密码
-    const isValid = await verifyPassword(password, employee.password_hash);
+    const isValid = await comparePassword(password, employee.password_hash);
     if (!isValid) {
       return res.status(401).json({
         error: 'Unauthorized',
