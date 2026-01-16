@@ -1,13 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ReactNode } from 'react';
 
-function Notification({
+interface NotificationProps {
+  type?: 'success' | 'error' | 'warning' | 'info';
+  title?: string;
+  message?: string;
+  duration?: number;
+  onClose?: () => void;
+  show?: boolean;
+}
+
+interface Toast extends NotificationProps {
+  id: number;
+}
+
+const Notification = ({
   type = 'info',
   title,
   message,
   duration = 5000,
   onClose,
   show = true,
-}) {
+}: NotificationProps) => {
   const [visible, setVisible] = useState(show);
 
   useEffect(() => {
@@ -30,7 +43,7 @@ function Notification({
 
   if (!visible) return null;
 
-  const types = {
+  const types: Record<string, { bg: string; border: string; icon: ReactNode }> = {
     success: {
       bg: 'bg-green-50',
       border: 'border-green-200',
@@ -100,20 +113,20 @@ function Notification({
       </div>
     </div>
   );
-}
+};
 
 // Toast 容器组件
-let toastCallbacks = [];
+let toastCallbacks: Array<(notification: Toast) => void> = [];
 
-function showToast(notification) {
-  toastCallbacks.forEach(cb => cb(notification));
+function showToast(notification: NotificationProps) {
+  toastCallbacks.forEach(cb => cb(notification as Toast));
 }
 
 function ToastContainer() {
-  const [toasts, setToasts] = useState([]);
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
-    const callback = (notification) => {
+    const callback = (notification: Toast) => {
       const id = Date.now();
       setToasts(prev => [...prev, { ...notification, id }]);
 
@@ -130,7 +143,7 @@ function ToastContainer() {
     };
   }, []);
 
-  const removeToast = (id) => {
+  const removeToast = (id: number) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 

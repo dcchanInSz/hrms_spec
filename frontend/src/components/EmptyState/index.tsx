@@ -1,10 +1,7 @@
 import Button from '../Button';
+import { EmptyStateProps } from '../../types/components';
 
-/**
- * 空状态组件
- * 用于列表、数据为空时的展示
- */
-function EmptyState({
+const EmptyState = ({
   icon,
   title = '暂无数据',
   description,
@@ -12,7 +9,7 @@ function EmptyState({
   actionLabel,
   onAction,
   className = '',
-}) {
+}: EmptyStateProps) => {
   return (
     <div className={`flex flex-col items-center justify-center py-12 px-4 ${className}`}>
       {/* 图标 */}
@@ -56,22 +53,22 @@ function EmptyState({
       {/* 操作按钮 */}
       {(action || actionLabel) && (
         <Button
-          variant={action === 'primary' ? 'primary' : 'secondary'}
-          onClick={onAction}
+          variant={action?.label === 'primary' ? 'primary' : 'secondary'}
+          onClick={onAction || action?.onClick}
         >
-          {actionLabel || '添加数据'}
+          {actionLabel || action?.label || '添加数据'}
         </Button>
       )}
     </div>
   );
-}
+};
 
 /**
  * 预设的空状态类型
  */
 EmptyState.types = {
   // 无数据
-  noData: (props) => (
+  noData: (props: Partial<EmptyStateProps>) => (
     <EmptyState
       icon={
         <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,7 +87,7 @@ EmptyState.types = {
   ),
 
   // 无结果
-  noResult: (props) => (
+  noResult: (props: Partial<EmptyStateProps>) => (
     <EmptyState
       icon={
         <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,7 +106,7 @@ EmptyState.types = {
   ),
 
   // 暂无权限
-  noPermission: (props) => (
+  noPermission: (props: Partial<EmptyStateProps>) => (
     <EmptyState
       icon={
         <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,7 +125,7 @@ EmptyState.types = {
   ),
 
   // 网络错误
-  networkError: (props) => (
+  networkError: (props: Partial<EmptyStateProps>) => (
     <EmptyState
       icon={
         <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,7 +139,6 @@ EmptyState.types = {
       }
       title="网络错误"
       description="请检查您的网络连接后重试"
-      action="primary"
       actionLabel="刷新页面"
       onAction={() => window.location.reload()}
       {...props}

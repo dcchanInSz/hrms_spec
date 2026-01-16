@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { leaveAPI } from '@/services/api';
 import Input from '@/components/Form/Input';
 import Select from '@/components/Form/Select';
@@ -6,10 +6,30 @@ import Textarea from '@/components/Form/Textarea';
 import Button from '@/components/Button';
 import Table from '@/components/Table';
 
-function RequestFormPage() {
-  const [leaveTypes, setLeaveTypes] = useState([]);
-  const [balances, setBalances] = useState([]);
-  const [formData, setFormData] = useState({
+interface LeaveType {
+  label: string;
+  value: string;
+}
+
+interface Balance {
+  type: string;
+  total: number;
+  used: number;
+  available: number;
+}
+
+interface FormData {
+  leave_type: string;
+  start_date: string;
+  end_date: string;
+  days: number;
+  reason: string;
+}
+
+const RequestFormPage = () => {
+  const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
+  const [balances, setBalances] = useState<Balance[]>([]);
+  const [formData, setFormData] = useState<FormData>({
     leave_type: '',
     start_date: '',
     end_date: '',
@@ -29,8 +49,8 @@ function RequestFormPage() {
           leaveAPI.getLeaveTypes().catch(() => ({ data: [] })),
           leaveAPI.getBalance().catch(() => ({ data: [] })),
         ]);
-        setLeaveTypes(typesRes.data || []);
-        setBalances(balancesRes.data || []);
+        setLeaveTypes(typesRes.data?.data || []);
+        setBalances(balancesRes.data?.data || []);
       } catch (err) {
         console.error('Failed to load data:', err);
         setError('加载数据失败');
@@ -67,12 +87,12 @@ function RequestFormPage() {
     return balance?.available || 0;
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: name === 'days' ? Number(value) : value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     setSuccess(false);
@@ -89,10 +109,10 @@ function RequestFormPage() {
         reason: '',
       });
 
-      // 刷新余额
+      {/* 刷新余额 */}
       const balancesRes = await leaveAPI.getBalance();
-      setBalances(balancesRes.data || []);
-    } catch (err) {
+      setBalances(balancesRes.data?.data || []);
+    } catch (err: any) {
       setError(err.message || '提交失败，请重试');
     } finally {
       setSubmitting(false);
@@ -177,27 +197,32 @@ function RequestFormPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Input
-                label="开始日期"
-                type="date"
-                name="start_date"
-                value={formData.start_date}
-                onChange={handleChange}
-                required
-              />
-              <Input
-                label="结束日期"
-                type="date"
-                name="end_date"
-                value={formData.end_date}
-                onChange={handleChange}
-                required
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">开始日期</label>
+                <input
+                  type="date"
+                  name="start_date"
+                  value={formData.start_date}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">结束日期</label>
+                <input
+                  type="date"
+                  name="end_date"
+                  value={formData.end_date}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
               <Input
                 label="请假天数"
-                type="number"
                 name="days"
-                value={formData.days}
+                value={formData.days.toString()}
                 onChange={handleChange}
                 min="0.5"
                 step="0.5"
@@ -233,6 +258,6 @@ function RequestFormPage() {
       </div>
     </div>
   );
-}
+};
 
 export default RequestFormPage;

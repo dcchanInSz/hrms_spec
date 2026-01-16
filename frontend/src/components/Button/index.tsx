@@ -1,15 +1,21 @@
 import { forwardRef } from 'react';
+import { ButtonProps } from '../../types/components';
 
-const Button = forwardRef(({
-  children,
-  variant = 'primary',
-  size = 'md',
-  disabled = false,
-  loading = false,
-  className = '',
-  ...props
-}, ref) => {
-  const variants = {
+const Button = forwardRef<HTMLButtonElement, ButtonProps>((
+  {
+    children,
+    variant = 'primary',
+    size = 'md',
+    disabled = false,
+    loading = false,
+    className = '',
+    onClick,
+    type = 'button',
+    ...props
+  },
+  ref
+) => {
+  const variants: Record<string, string> = {
     primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500',
     secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500',
     danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
@@ -18,7 +24,7 @@ const Button = forwardRef(({
     ghost: 'text-gray-600 hover:bg-gray-100 focus:ring-gray-500',
   };
 
-  const sizes = {
+  const sizes: Record<string, string> = {
     sm: 'px-3 py-1.5 text-sm',
     md: 'px-4 py-2',
     lg: 'px-6 py-3 text-lg',
@@ -27,7 +33,9 @@ const Button = forwardRef(({
   return (
     <button
       ref={ref}
+      type={type}
       disabled={disabled || loading}
+      onClick={onClick}
       className={`
         inline-flex items-center justify-center rounded-lg font-medium
         transition-colors duration-200
@@ -48,11 +56,11 @@ const Button = forwardRef(({
         >
           <circle
             className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
+            cx={12}
+            cy={12}
+            r={10}
             stroke="currentColor"
-            strokeWidth="4"
+            strokeWidth={4}
           />
           <path
             className="opacity-75"

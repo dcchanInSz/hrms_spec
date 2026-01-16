@@ -1,13 +1,16 @@
 import { forwardRef } from 'react';
+import { InputProps } from '../../types/components';
 
-const Select = forwardRef(({
-  label,
-  error,
-  options = [],
-  placeholder,
-  className = '',
-  ...props
-}, ref) => {
+const Input = forwardRef<HTMLInputElement, InputProps>((
+  {
+    label,
+    error,
+    type = 'text',
+    className = '',
+    ...props
+  },
+  ref
+) => {
   return (
     <div className="w-full">
       {label && (
@@ -15,26 +18,18 @@ const Select = forwardRef(({
           {label}
         </label>
       )}
-      <select
+      <input
         ref={ref}
+        type={type}
         className={`
-          w-full px-4 py-2 border rounded-lg bg-white
+          w-full px-4 py-2 border rounded-lg
           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-          transition-colors
+          placeholder-gray-400 transition-colors
           ${error ? 'border-red-500' : 'border-gray-300'}
           ${className}
         `}
         {...props}
-      >
-        {placeholder && (
-          <option value="">{placeholder}</option>
-        )}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      />
       {error && (
         <p className="mt-1 text-sm text-red-600">{error}</p>
       )}
@@ -42,6 +37,6 @@ const Select = forwardRef(({
   );
 });
 
-Select.displayName = 'Select';
+Input.displayName = 'Input';
 
-export default Select;
+export default Input;

@@ -1,12 +1,16 @@
 import { forwardRef } from 'react';
+import { TextareaProps } from '../../types/components';
 
-const Input = forwardRef(({
-  label,
-  error,
-  type = 'text',
-  className = '',
-  ...props
-}, ref) => {
+const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>((
+  {
+    label,
+    error,
+    rows = 4,
+    className = '',
+    ...props
+  },
+  ref
+) => {
   return (
     <div className="w-full">
       {label && (
@@ -14,13 +18,13 @@ const Input = forwardRef(({
           {label}
         </label>
       )}
-      <input
+      <textarea
         ref={ref}
-        type={type}
+        rows={rows}
         className={`
           w-full px-4 py-2 border rounded-lg
           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-          placeholder-gray-400 transition-colors
+          placeholder-gray-400 transition-colors resize-none
           ${error ? 'border-red-500' : 'border-gray-300'}
           ${className}
         `}
@@ -33,6 +37,6 @@ const Input = forwardRef(({
   );
 });
 
-Input.displayName = 'Input';
+Textarea.displayName = 'Textarea';
 
-export default Input;
+export default Textarea;

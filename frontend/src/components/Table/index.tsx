@@ -1,17 +1,21 @@
 import { forwardRef } from 'react';
+import { TableProps } from '../../types/components';
 
-const Table = forwardRef(({
-  columns = [],
-  data = [],
-  loading = false,
-  emptyMessage = '暂无数据',
-  rowKey = 'id',
-  onRowClick,
-  className = '',
-}, ref) => {
+const Table = forwardRef<HTMLTableElement, TableProps<any>>((
+  {
+    columns = [],
+    data = [],
+    loading = false,
+    emptyMessage = '暂无数据',
+    rowKey = 'id',
+    onRowClick,
+    className = '',
+  },
+  ref
+) => {
   return (
     <div className={`overflow-x-auto ${className}`}>
-      <table className="w-full text-sm text-left">
+      <table ref={ref} className="w-full text-sm text-left">
         <thead className="text-xs text-gray-500 uppercase bg-gray-50">
           <tr>
             {columns.map((column, index) => (
@@ -60,8 +64,8 @@ const Table = forwardRef(({
                 {columns.map((column, colIndex) => (
                   <td key={colIndex} className="px-6 py-4">
                     {column.render
-                      ? column.render(row[column.dataIndex], row)
-                      : row[column.dataIndex]}
+                      ? column.render(row[column.dataIndex as keyof typeof row], row)
+                      : row[column.dataIndex as keyof typeof row]}
                   </td>
                 ))}
               </tr>

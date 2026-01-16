@@ -4,20 +4,44 @@ import Table from '@/components/Table';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
 
-function MyLeavesPage() {
-  const [leaves, setLeaves] = useState([]);
+interface Leave {
+  id: number;
+  leave_type: string;
+  start_date: string;
+  end_date: string;
+  days: number;
+  status: string;
+  created_at: string;
+  reason?: string;
+  rejection_reason?: string;
+}
+
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+interface Filters {
+  status: string;
+  leave_type: string;
+}
+
+const MyLeavesPage = () => {
+  const [leaves, setLeaves] = useState<Leave[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 10,
     total: 0,
     totalPages: 0,
   });
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     status: '',
     leave_type: '',
   });
-  const [selectedLeave, setSelectedLeave] = useState(null);
+  const [selectedLeave, setSelectedLeave] = useState<Leave | null>(null);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [canceling, setCanceling] = useState(false);
 
@@ -30,14 +54,15 @@ function MyLeavesPage() {
         page: pagination.page,
         limit: pagination.limit,
       });
-      setLeaves(response.data || []);
+      setLeaves(response.data?.data || []);
       setPagination(prev => ({
         ...prev,
-        total: response.pagination?.total || 0,
-        totalPages: response.pagination?.totalPages || 0,
+        total: response.data?.pagination?.total || 0,
+        totalPages: response.data?.pagination?.totalPages || 0,
       }));
     } catch (err) {
       console.error('Failed to load leaves:', err);
+      setLeaves([]);
     } finally {
       setLoading(false);
     }
@@ -57,7 +82,7 @@ function MyLeavesPage() {
       setCancelModalOpen(false);
       setSelectedLeave(null);
       loadLeaves();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to cancel:', err);
       alert(err.message || '取消失败');
     } finally {
@@ -65,21 +90,21 @@ function MyLeavesPage() {
     }
   };
 
-  const statusLabels = {
+  const statusLabels: Record<string, string> = {
     pending: '待审批',
     approved: '已批准',
     rejected: '已拒绝',
     archived: '已撤回',
   };
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     pending: 'badge-warning',
     approved: 'badge-success',
     rejected: 'badge-danger',
     archived: 'badge-gray',
   };
 
-  const typeLabels = {
+  const typeLabels: Record<string, string> = {
     annual: '年假',
     sick: '病假',
     personal: '事假',
@@ -90,7 +115,7 @@ function MyLeavesPage() {
     {
       title: '假期类型',
       dataIndex: 'leave_type',
-      render: (value) => typeLabels[value] || value,
+      render: (value: string) => typeLabels[value] || value,
     },
     {
       title: '开始日期',
@@ -107,7 +132,7 @@ function MyLeavesPage() {
     {
       title: '状态',
       dataIndex: 'status',
-      render: (value) => (
+      render: (value: string) => (
         <span className={`badge ${statusColors[value] || 'badge-gray'}`}>
           {statusLabels[value] || value}
         </span>
@@ -116,12 +141,12 @@ function MyLeavesPage() {
     {
       title: '申请时间',
       dataIndex: 'created_at',
-      render: (value) => new Date(value).toLocaleDateString('zh-CN'),
+      render: (value: string) => new Date(value).toLocaleDateString('zh-CN'),
     },
     {
       title: '操作',
       dataIndex: 'actions',
-      render: (_, record) => (
+      render: (_: any, record: Leave) => (
         <div className="flex space-x-2">
           <Button
             variant="ghost"
@@ -190,7 +215,7 @@ function MyLeavesPage() {
             data={leaves}
             loading={loading}
             emptyMessage="暂无请假记录"
-            onRowClick={(row) => setSelectedLeave(row)}
+            onRowClick={(row: any) => setSelectedLeave(row)}
           />
         </div>
 
@@ -311,6 +336,6 @@ function MyLeavesPage() {
       </Modal>
     </div>
   );
-}
+};
 
 export default MyLeavesPage;

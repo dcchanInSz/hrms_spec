@@ -1,9 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, ReactNode } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotification } from '../../contexts/NotificationContext';
 
-function Layout() {
+interface NavigationItem {
+  name: string;
+  path: string;
+  icon: string;
+}
+
+const Layout = () => {
   const { user, logout } = useAuth();
   const { unreadCount } = useNotification();
   const navigate = useNavigate();
@@ -15,7 +21,7 @@ function Layout() {
     navigate('/login');
   };
 
-  const navigation = [
+  const navigation: NavigationItem[] = [
     { name: '仪表盘', path: '/dashboard', icon: 'home' },
     { name: '个人资料', path: '/profile', icon: 'user' },
     { name: '我的请假', path: '/my-leaves', icon: 'calendar' },
@@ -25,22 +31,22 @@ function Layout() {
     { name: '通知', path: '/notifications', icon: 'bell' },
   ];
 
-  const managerNavigation = [
+  const managerNavigation: NavigationItem[] = [
     { name: '团队仪表盘', path: '/manager/dashboard', icon: 'users' },
     { name: '团队成员', path: '/manager/team', icon: 'user-group' },
     { name: '审批管理', path: '/manager/approvals', icon: 'check' },
     { name: '团队日历', path: '/manager/calendar', icon: 'calendar' },
   ];
 
-  const hrNavigation = [
+  const hrNavigation: NavigationItem[] = [
     { name: '员工管理', path: '/hr/employees', icon: 'users' },
     { name: '部门管理', path: '/hr/departments', icon: 'office' },
     { name: '审计日志', path: '/hr/audit-logs', icon: 'clipboard' },
     { name: '报表分析', path: '/hr/reports', icon: 'chart' },
   ];
 
-  const renderIcon = (name) => {
-    const icons = {
+  const renderIcon = (name: string): ReactNode => {
+    const icons: Record<string, ReactNode> = {
       home: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -110,7 +116,7 @@ function Layout() {
     return icons[name] || icons.home;
   };
 
-  const roleLabels = {
+  const roleLabels: Record<string, string> = {
     employee: '员工',
     manager: '经理',
     hr: 'HR管理员',
@@ -316,6 +322,6 @@ function Layout() {
       </div>
     </div>
   );
-}
+};
 
 export default Layout;

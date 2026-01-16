@@ -2,9 +2,15 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { leaveAPI, notificationAPI } from '@/services/api';
 
-function DashboardPage() {
+interface DashboardStats {
+  pendingLeaves: number;
+  myLeavesThisMonth: number;
+  unreadNotifications: number;
+}
+
+const DashboardPage = () => {
   const { user, isAuthenticated } = useAuth();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     pendingLeaves: 0,
     myLeavesThisMonth: 0,
     unreadNotifications: 0,
@@ -38,7 +44,7 @@ function DashboardPage() {
     fetchDashboardData();
   }, [isAuthenticated]);
 
-  const roleLabels = {
+  const roleLabels: Record<string, string> = {
     employee: '员工',
     manager: '经理',
     hr: 'HR管理员',
@@ -176,6 +182,6 @@ function DashboardPage() {
       </div>
     </div>
   );
-}
+};
 
 export default DashboardPage;

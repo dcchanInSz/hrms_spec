@@ -1,15 +1,23 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
-const LoadingContext = createContext({
-  isLoading: false,
-  loadingText: '',
-  showLoading: () => {},
-  hideLoading: () => {},
-  withLoading: async (fn, text) => {},
-});
+interface LoadingState {
+  isLoading: boolean;
+  loadingText: string;
+  count: number;
+}
 
-export function LoadingProvider({ children }) {
-  const [loadingState, setLoadingState] = useState({
+interface LoadingContextType {
+  isLoading: boolean;
+  loadingText: string;
+  showLoading: (text?: string) => void;
+  hideLoading: () => void;
+  withLoading: <T>(fn: () => T, text?: string) => Promise<T>;
+}
+
+const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
+
+export function LoadingProvider({ children }: { children: ReactNode }) {
+  const [loadingState, setLoadingState] = useState<LoadingState>({
     isLoading: false,
     loadingText: '',
     count: 0,
@@ -34,7 +42,7 @@ export function LoadingProvider({ children }) {
   }, []);
 
   const withLoading = useCallback(
-    async (fn, text = '加载中...') => {
+    async <T,>(fn: () => Promise<T> | T, text = '加载中...'): Promise<T> => {
       showLoading(text);
       try {
         return await fn();

@@ -1,14 +1,15 @@
 import { useEffect, useCallback } from 'react';
+import { ModalProps } from '../../types/components';
 
-function Modal({
+const Modal = ({
   isOpen,
   onClose,
   title,
   children,
-  size = 'md',
+  size = 'medium',
   showClose = true,
-}) {
-  const handleEscape = useCallback((e) => {
+}: ModalProps) => {
+  const handleEscape = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       onClose();
     }
@@ -28,10 +29,10 @@ function Modal({
 
   if (!isOpen) return null;
 
-  const sizes = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
+  const sizes: Record<string, string> = {
+    small: 'max-w-md',
+    medium: 'max-w-lg',
+    large: 'max-w-2xl',
     xl: 'max-w-4xl',
     full: 'max-w-full mx-4',
   };
@@ -91,6 +92,6 @@ function Modal({
       </div>
     </div>
   );
-}
+};
 
 export default Modal;

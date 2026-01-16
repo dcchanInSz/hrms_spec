@@ -5,8 +5,8 @@
 import { ReactNode } from 'react';
 
 export interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'danger' | 'outline';
-  size?: 'small' | 'medium' | 'large';
+  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'outline' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   children: ReactNode;
   className?: string;
@@ -86,22 +86,25 @@ export interface TableProps<T> {
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
-  children: ReactNode;
+  title?: string;
+  children?: ReactNode;
   footer?: ReactNode;
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | 'xl' | 'full';
   className?: string;
+  showClose?: boolean;
 }
 
 export interface ConfirmDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  title: string;
-  message: string;
+  onCancel: () => void;
+  title?: string;
+  message?: string;
   confirmText?: string;
   cancelText?: string;
-  type?: 'warning' | 'danger' | 'info';
+  confirmVariant?: 'danger' | 'primary' | 'secondary';
+  loading?: boolean;
 }
 
 export interface LoadingOverlayProps {
@@ -112,12 +115,14 @@ export interface LoadingOverlayProps {
 }
 
 export interface EmptyStateProps {
-  title: string;
+  title?: string;
   description?: string;
   action?: {
     label: string;
     onClick: () => void;
   };
+  actionLabel?: string;
+  onAction?: () => void;
   icon?: ReactNode;
   className?: string;
 }
@@ -137,10 +142,13 @@ export interface NotificationProps {
 }
 
 export interface ExportButtonProps {
-  onExport: (format: 'csv' | 'pdf' | 'xlsx') => void;
-  loading?: boolean;
-  disabled?: boolean;
+  type: string;
+  label?: string;
+  format?: string;
+  params?: Record<string, any>;
   className?: string;
+  onSuccess?: () => void;
+  onError?: (error: any) => void;
 }
 
 export interface BalanceCardProps {

@@ -1,12 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { employeeAPI } from '@/services/api';
 import Input from '@/components/Form/Input';
 import Button from '@/components/Button';
 
-function ProfilePage() {
+interface ProfileFormData {
+  name: string;
+  phone: string;
+  emergency_contact: string;
+  emergency_phone: string;
+}
+
+const ProfilePage = () => {
   const { user } = useAuth();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProfileFormData>({
     name: '',
     phone: '',
     emergency_contact: '',
@@ -22,7 +29,7 @@ function ProfilePage() {
     const loadProfile = async () => {
       try {
         const response = await employeeAPI.getProfile();
-        const data = response.data;
+        const data = response.data?.data || response.data;
         setFormData({
           name: data.name || '',
           phone: data.phone || '',
@@ -42,12 +49,12 @@ function ProfilePage() {
     }
   }, [user]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
     setSuccess(false);
@@ -57,7 +64,7 @@ function ProfilePage() {
       await employeeAPI.updateProfile(formData);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || '保存失败，请重试');
     } finally {
       setSaving(false);
@@ -159,6 +166,6 @@ function ProfilePage() {
       </div>
     </div>
   );
-}
+};
 
 export default ProfilePage;

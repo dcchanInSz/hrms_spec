@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import Input from '@/components/Form/Input';
 import Button from '@/components/Button';
 
-function LoginPage() {
+const LoginPage = () => {
   const navigate = useNavigate();
   const { login, user } = useAuth();
   const [email, setEmail] = useState('');
@@ -17,7 +17,7 @@ function LoginPage() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -25,7 +25,7 @@ function LoginPage() {
     try {
       await login(email, password);
       navigate('/dashboard');
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || '登录失败，请检查邮箱和密码');
     } finally {
       setLoading(false);
@@ -58,7 +58,6 @@ function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="请输入邮箱地址"
               required
-              autoComplete="email"
             />
 
             <Input
@@ -68,7 +67,6 @@ function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="请输入密码"
               required
-              autoComplete="current-password"
             />
 
             <Button
@@ -89,6 +87,6 @@ function LoginPage() {
       </div>
     </div>
   );
-}
+};
 
 export default LoginPage;

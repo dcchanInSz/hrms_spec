@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { reportAPI } from '../../services/api';
+import { ExportButtonProps } from '../../types/components';
 
-/* eslint-disable react/prop-types */
-function ExportButton({
+const ExportButton = ({
   type,
   label = '导出',
   format = 'csv',
@@ -10,7 +10,7 @@ function ExportButton({
   className = '',
   onSuccess,
   onError,
-}) {
+}: ExportButtonProps) => {
   const [loading, setLoading] = useState(false);
 
   const handleExport = async () => {
@@ -19,7 +19,8 @@ function ExportButton({
       const response = await reportAPI.exportReport(type, format, params);
 
       // 创建下载链接
-      const blob = new Blob([response], { type: 'text/csv;charset=utf-8;' });
+      const data = typeof response === 'string' ? response : response.data || response;
+      const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -32,7 +33,7 @@ function ExportButton({
       if (onSuccess) {
         onSuccess();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Export failed:', error);
       if (onError) {
         onError(error);
@@ -68,11 +69,11 @@ function ExportButton({
           >
             <circle
               className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
+              cx={12}
+              cy={12}
+              r={10}
               stroke="currentColor"
-              strokeWidth="4"
+              strokeWidth={4}
             />
             <path
               className="opacity-75"
@@ -102,6 +103,6 @@ function ExportButton({
       )}
     </button>
   );
-}
+};
 
 export default ExportButton;

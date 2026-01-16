@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import Modal from '../Modal';
+import { ConfirmDialogProps } from '../../types/components';
 
 /**
  * 确认对话框组件
  * 用于敏感操作前的二次确认
  */
-function ConfirmDialog({
+const ConfirmDialog = ({
   isOpen,
   title = '确认操作',
   message = '您确定要执行此操作吗？',
@@ -15,14 +16,11 @@ function ConfirmDialog({
   onConfirm,
   onCancel,
   loading = false,
-}) {
+}: ConfirmDialogProps) => {
   return (
-    <Modal isOpen={isOpen} onClose={onCancel} size="sm">
-      <Modal.Header onClose={onCancel}>
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-      </Modal.Header>
-
-      <Modal.Body>
+    <Modal isOpen={isOpen} onClose={onCancel} size="medium">
+      <div className="px-6 py-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
         <div className="flex items-start space-x-4">
           <div className="flex-shrink-0">
             <svg
@@ -43,9 +41,8 @@ function ConfirmDialog({
           </div>
           <p className="text-gray-600">{message}</p>
         </div>
-      </Modal.Body>
-
-      <Modal.Footer>
+      </div>
+      <div className="flex justify-end space-x-4 px-6 py-4 bg-gray-50 rounded-b-xl">
         <button
           type="button"
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
@@ -76,19 +73,18 @@ function ConfirmDialog({
             confirmText
           )}
         </button>
-      </Modal.Footer>
+      </div>
     </Modal>
   );
-}
+};
 
 /**
  * 使用确认对话框的 Hook
  */
-export function useConfirm(options = {}) {
+export function useConfirm(options: Partial<ConfirmDialogProps> = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [config, setConfig] = useState(options);
-  const [promise, setPromise] = useState(null);
-  const [resolvePromise, setResolvePromise] = useState(null);
+  const [promise, setPromise] = useState<{ resolve: (value: boolean) => void } | null>(null);
 
   useEffect(() => {
     if (isOpen && promise) {
@@ -96,26 +92,25 @@ export function useConfirm(options = {}) {
     }
   }, [isOpen]);
 
-  const confirm = (message, overrides = {}) => {
+  const confirm = (message: string, overrides: Partial<ConfirmDialogProps> = {}) => {
     setConfig({ ...options, ...overrides, message });
     setIsOpen(true);
 
-    return new Promise((resolve) => {
+    return new Promise<boolean>((resolve) => {
       setPromise({ resolve });
-      setResolvePromise(() => resolve);
     });
   };
 
   const handleConfirm = () => {
-    if (resolvePromise) {
-      resolvePromise(true);
+    if (promise) {
+      promise.resolve(true);
     }
     setIsOpen(false);
   };
 
   const handleCancel = () => {
-    if (resolvePromise) {
-      resolvePromise(false);
+    if (promise) {
+      promise.resolve(false);
     }
     setIsOpen(false);
   };
@@ -128,6 +123,7 @@ export function useConfirm(options = {}) {
         {...config}
         onConfirm={handleConfirm}
         onCancel={handleCancel}
+        onClose={handleCancel}
       />
     ),
   };
@@ -146,7 +142,7 @@ export const dangerConfirmations = {
   }),
 
   // 离职确认
-  terminate: (employeeName) => ({
+  terminate: (employeeName: string) => ({
     title: '确认离职',
     message: `您确定要将 ${employeeName} 办理离职吗？这将清除其经理关系。`,
     confirmText: '确认离职',
@@ -162,7 +158,7 @@ export const dangerConfirmations = {
   }),
 
   // 批量操作确认
-  batchAction: (count, action) => ({
+  batchAction: (count: number, action: string) => ({
     title: '确认批量操作',
     message: `您确定要对选中的 ${count} 项执行"${action}"操作吗？`,
     confirmText: '确认执行',
