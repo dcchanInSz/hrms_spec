@@ -15,17 +15,18 @@ function HREmployeeFormPage() {
   const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
-    employee_no: '',
-    name: '',
+    employeeId: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
-    phone: '',
-    emergency_contact: '',
-    emergency_phone: '',
-    department_id: '',
-    position_id: '',
-    manager_id: '',
-    hire_date: '',
+    phoneNumber: '',
+    emergencyContact: '',
+    emergencyPhone: '',
+    departmentId: '',
+    positionId: '',
+    managerId: '',
+    hireDate: '',
     role: 'employee',
     status: 'inactive',
   });
@@ -33,18 +34,18 @@ function HREmployeeFormPage() {
   // 加载部门列表
   const loadDepartments = async () => {
     try {
-      const response = await departmentAPI.getDepartments();
-      setDepartments(response.data || []);
+      const response = await departmentAPI.getDepartments() as any;
+      setDepartments((response as any).data || []);
     } catch (err) {
       console.error('Failed to load departments:', err);
     }
   };
 
   // 加载职位列表
-  const loadPositions = async (departmentId) => {
+  const loadPositions = async (departmentId: any) => {
     try {
-      const response = await positionAPI.getAllPositions({ department_id: departmentId });
-      setPositions(response.data || []);
+      const response = await positionAPI.getAllPositions({ department_id: departmentId }) as any;
+      setPositions((response as any).data || []);
     } catch (err) {
       console.error('Failed to load positions:', err);
     }
@@ -56,21 +57,22 @@ function HREmployeeFormPage() {
 
     setLoading(true);
     try {
-      const response = await employeeAPI.getEmployee(id);
+      const response = await employeeAPI.getEmployee(id as any) as any;
       const employee = response.data || response;
 
       setFormData({
-        employee_no: employee.employee_no || '',
-        name: employee.name || '',
+        employeeId: employee.employeeId || employee.employee_no || '',
+        firstName: employee.firstName || employee.name?.split(' ')[0] || '',
+        lastName: employee.lastName || employee.name?.split(' ')[1] || '',
         email: employee.email || '',
         password: '',
-        phone: employee.phone || '',
-        emergency_contact: employee.emergency_contact || '',
-        emergency_phone: employee.emergency_phone || '',
-        department_id: employee.department_id || '',
-        position_id: employee.position_id || '',
-        manager_id: employee.manager_id || '',
-        hire_date: employee.hire_date || '',
+        phoneNumber: employee.phoneNumber || employee.phone || '',
+        emergencyContact: employee.emergencyContact || employee.emergency_contact || '',
+        emergencyPhone: employee.emergencyPhone || employee.emergency_phone || '',
+        departmentId: employee.departmentId?.toString() || employee.department_id?.toString() || '',
+        positionId: employee.positionId?.toString() || employee.position_id?.toString() || '',
+        managerId: employee.managerId?.toString() || employee.manager_id?.toString() || '',
+        hireDate: employee.hireDate || employee.hire_date || '',
         role: employee.role || 'employee',
         status: employee.status || 'inactive',
       });
@@ -109,7 +111,7 @@ function HREmployeeFormPage() {
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.name.trim()) {
+    if (!formData.firstName.trim()) {
       newErrors.name = '请输入姓名';
     }
 
@@ -127,7 +129,7 @@ function HREmployeeFormPage() {
       }
     }
 
-    if (!formData.hire_date) {
+    if (!formData.hireDate) {
       newErrors.hire_date = '请选择入职日期';
     }
 
@@ -151,11 +153,11 @@ function HREmployeeFormPage() {
         delete updateData.password;
         delete updateData.email; // 邮箱不允许修改
 
-        await employeeAPI.updateEmployee(id, updateData);
+        await employeeAPI.updateEmployee(id, updateData) as any;
         alert('员工信息更新成功');
       } else {
         // 创建新员工
-        await employeeAPI.createEmployee(formData);
+        await employeeAPI.createEmployee(formData) as any;
         alert('员工创建成功');
       }
       navigate('/hr/employees');
@@ -194,7 +196,7 @@ function HREmployeeFormPage() {
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                     errors.employee_no ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  value={formData.employee_no}
+                  value={formData.employeeId}
                   onChange={(e) => setFormData((prev) => ({ ...prev, employee_no: e.target.value }))}
                   placeholder="如: EMP001"
                 />
@@ -212,7 +214,7 @@ function HREmployeeFormPage() {
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                     errors.name ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  value={formData.name}
+                  value={formData.firstName}
                   onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="请输入姓名"
                 />
@@ -258,7 +260,7 @@ function HREmployeeFormPage() {
                 <input
                   type="tel"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={formData.phone}
+                  value={formData.phoneNumber}
                   onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
                   placeholder="请输入手机号码"
                 />
@@ -271,7 +273,7 @@ function HREmployeeFormPage() {
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                     errors.hire_date ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  value={formData.hire_date}
+                  value={formData.hireDate}
                   onChange={(e) => setFormData((prev) => ({ ...prev, hire_date: e.target.value }))}
                 />
                 {errors.hire_date && <p className="mt-1 text-sm text-red-500">{errors.hire_date}</p>}
@@ -289,7 +291,7 @@ function HREmployeeFormPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">部门</label>
                 <select
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={formData.department_id}
+                  value={formData.departmentId}
                   onChange={handleDepartmentChange}
                 >
                   <option value="">请选择部门</option>
@@ -305,9 +307,9 @@ function HREmployeeFormPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">职位</label>
                 <select
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={formData.position_id}
+                  value={formData.positionId}
                   onChange={(e) => setFormData((prev) => ({ ...prev, position_id: e.target.value }))}
-                  disabled={!formData.department_id}
+                  disabled={!formData.departmentId}
                 >
                   <option value="">请选择职位</option>
                   {positions.map((pos) => (
@@ -356,7 +358,7 @@ function HREmployeeFormPage() {
                 <input
                   type="text"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={formData.emergency_contact}
+                  value={formData.emergencyContact}
                   onChange={(e) => setFormData((prev) => ({ ...prev, emergency_contact: e.target.value }))}
                   placeholder="请输入紧急联系人姓名"
                 />
@@ -367,7 +369,7 @@ function HREmployeeFormPage() {
                 <input
                   type="tel"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={formData.emergency_phone}
+                  value={formData.emergencyPhone}
                   onChange={(e) => setFormData((prev) => ({ ...prev, emergency_phone: e.target.value }))}
                   placeholder="请输入紧急联系人电话"
                 />

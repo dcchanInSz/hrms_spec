@@ -157,7 +157,7 @@ export const leaveAPI = {
 
   // 经理审批
   getPendingApprovals: () =>
-    api.get('/leaves/pending'),
+    api.get('/teams/pending-approvals'),
 
   approve: (id: number, data: any) =>
     api.put(`/leaves/${id}/approve`, data),
@@ -170,7 +170,7 @@ export const leaveAPI = {
     api.get('/admin/leaves', { params }),
 
   getTeamLeaves: (params?: any) =>
-    api.get('/leaves/team', { params }),
+    api.get('/teams/leaves', { params }),
 };
 
 // 工资单 API

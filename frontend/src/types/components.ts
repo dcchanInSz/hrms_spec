@@ -6,7 +6,7 @@ import { ReactNode } from 'react';
 
 export interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'small' | 'medium' | 'large' | 'sm' | 'md' | 'lg';
   loading?: boolean;
   children: ReactNode;
   className?: string;
@@ -63,6 +63,7 @@ export interface TextareaProps {
 export interface TableColumn<T> {
   key: keyof T | string;
   title: string;
+  dataIndex?: keyof T | string;
   width?: string | number;
   render?: (value: any, record: T, index: number) => ReactNode;
   sortable?: boolean;
@@ -73,6 +74,8 @@ export interface TableProps<T> {
   data: T[];
   columns: TableColumn<T>[];
   loading?: boolean;
+  emptyMessage?: string;
+  rowKey?: keyof T | string;
   pagination?: {
     current: number;
     pageSize: number;

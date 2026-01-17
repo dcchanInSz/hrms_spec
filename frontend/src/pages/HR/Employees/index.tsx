@@ -48,12 +48,13 @@ const HREmployeesPage: React.FC = () => {
         ...filters,
         page: pagination.page,
         limit: pagination.limit,
-      });
-      setEmployees(response.data || []);
+      }) as any;
+      // API returns { data: [...], pagination: {...} }
+      setEmployees(response.data.data || []);
       setPagination((prev) => ({
         ...prev,
-        total: response.pagination?.total || 0,
-        totalPages: response.pagination?.totalPages || 0,
+        total: response.data.pagination?.total || 0,
+        totalPages: response.data.pagination?.totalPages || 0,
       }));
     } catch (err: any) {
       console.error('Failed to load employees:', err);
@@ -65,8 +66,8 @@ const HREmployeesPage: React.FC = () => {
   // 加载部门列表
   const loadDepartments = async () => {
     try {
-      const response = await departmentAPI.getDepartments();
-      setDepartments(response.data || []);
+      const response = await departmentAPI.getDepartments() as any;
+      setDepartments(response.data.data || []);
     } catch (err: any) {
       console.error('Failed to load departments:', err);
     }
@@ -86,7 +87,7 @@ const HREmployeesPage: React.FC = () => {
 
     setDeleting(true);
     try {
-      await employeeAPI.deleteEmployee(selectedEmployee.id);
+      await employeeAPI.deleteEmployee(selectedEmployee.id) as any;
       setDeleteModalOpen(false);
       setSelectedEmployee(null);
       loadEmployees();
@@ -303,7 +304,7 @@ const HREmployeesPage: React.FC = () => {
           <div className="px-6 py-4 border-t border-gray-100 flex justify-center space-x-2">
             <Button
               variant="secondary"
-              size="sm"
+              size="small"
               disabled={pagination.page === 1}
               onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
             >
@@ -314,7 +315,7 @@ const HREmployeesPage: React.FC = () => {
             </span>
             <Button
               variant="secondary"
-              size="sm"
+              size="small"
               disabled={pagination.page === pagination.totalPages}
               onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
             >
@@ -332,7 +333,7 @@ const HREmployeesPage: React.FC = () => {
           setSelectedEmployee(null);
         }}
         title="确认删除"
-        size="sm"
+        size="small"
       >
         <p className="text-gray-600 mb-6">
           确定要删除员工「{selectedEmployee?.name}」吗？删除后员工状态将变更为离职。

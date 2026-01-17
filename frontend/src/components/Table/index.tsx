@@ -61,13 +61,16 @@ const Table = forwardRef<HTMLTableElement, TableProps<any>>((
                 `}
                 onClick={() => onRowClick?.(row)}
               >
-                {columns.map((column, colIndex) => (
-                  <td key={colIndex} className="px-6 py-4">
-                    {column.render
-                      ? column.render(row[column.dataIndex as keyof typeof row], row)
-                      : row[column.dataIndex as keyof typeof row]}
-                  </td>
-                ))}
+                {columns.map((column, colIndex) => {
+                  const value = column.dataIndex ? row[column.dataIndex as keyof typeof row] : undefined;
+                  return (
+                    <td key={colIndex} className="px-6 py-4">
+                      {column.render
+                        ? column.render(value, row, rowIndex)
+                        : value}
+                    </td>
+                  );
+                })}
               </tr>
             ))
           )}

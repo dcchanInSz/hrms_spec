@@ -28,7 +28,7 @@ const ProfilePage = () => {
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const response = await employeeAPI.getProfile();
+        const response = await employeeAPI.getProfile() as any;
         const data = response.data?.data || response.data;
         setFormData({
           name: data.name || '',
@@ -61,7 +61,7 @@ const ProfilePage = () => {
     setError('');
 
     try {
-      await employeeAPI.updateProfile(formData);
+      await employeeAPI.updateProfile(formData) as any;
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { auditAPI } from '@/services/api';
 import Table from '@/components/Table';
 import Button from '@/components/Button';
@@ -38,25 +38,46 @@ const HRAuditLogsPage: React.FC = () => {
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState<boolean>(false);
 
+  // 使用useRef来跟踪正在进行的请求，避免重复请求
+  const isFetchingRef = useRef<boolean>(false);
+  const lastFetchRef = useRef<number>(0);
+  const CACHE_DURATION = 10000; // 10秒缓存
+
   // 加载审计日志
   const loadLogs = async () => {
+    // 防止重复请求
+    if (isFetchingRef.current) {
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastFetchRef.current < CACHE_DURATION) {
+      return;
+    }
+
     setLoading(true);
+    isFetchingRef.current = true;
+    lastFetchRef.current = now;
+
     try {
       const response = await auditAPI.getAuditLogs({
         ...filters,
         page: pagination.page,
         limit: pagination.limit,
-      });
-      setLogs(response.data || []);
+      }) as any;
+
+      // response 是已经解包后的数据，结构为 { success, message, data: { data, pagination } }
+      setLogs(response.data?.data || []);
       setPagination((prev) => ({
         ...prev,
-        total: response.pagination?.total || 0,
-        totalPages: response.pagination?.totalPages || 0,
+        total: response.data?.pagination?.total || 0,
+        totalPages: response.data?.pagination?.totalPages || 0,
       }));
     } catch (err: any) {
       console.error('Failed to load audit logs:', err);
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   };
 
@@ -265,7 +286,7 @@ const HRAuditLogsPage: React.FC = () => {
           <div className="px-6 py-4 border-t border-gray-100 flex justify-center space-x-2">
             <Button
               variant="secondary"
-              size="sm"
+              size="small"
               disabled={pagination.page === 1}
               onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
             >
@@ -276,7 +297,7 @@ const HRAuditLogsPage: React.FC = () => {
             </span>
             <Button
               variant="secondary"
-              size="sm"
+              size="small"
               disabled={pagination.page === pagination.totalPages}
               onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
             >
@@ -294,7 +315,7 @@ const HRAuditLogsPage: React.FC = () => {
           setSelectedLog(null);
         }}
         title="日志详情"
-        size="lg"
+        size="large"
       >
         {selectedLog && (
           <div className="space-y-4">

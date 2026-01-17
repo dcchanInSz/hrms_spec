@@ -50,13 +50,13 @@ export const rateLimiters = {
   api: {
     middleware: apiLimiter.middleware({
       windowMs: 15 * 60 * 1000,
-      max: 100,
+      max: 300, // 开发环境临时提高限制
     }),
   },
   login: {
     middleware: loginLimiter.middleware({
       windowMs: 15 * 60 * 1000,
-      max: 5,
+      max: 20, // 开发环境临时提高限制
     }),
   },
 };

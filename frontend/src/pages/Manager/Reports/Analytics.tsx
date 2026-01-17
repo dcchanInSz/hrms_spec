@@ -47,7 +47,7 @@ const ManagerAnalyticsPage: React.FC = () => {
     const fetchAnalytics = async () => {
       try {
         setLoading(true);
-        const response = await reportAPI.getTeamAnalytics();
+        const response = await reportAPI.getTeamAnalytics() as any;
         setAnalytics(response.data as AnalyticsData);
       } catch (err: any) {
         console.error('Failed to fetch team analytics:', err);

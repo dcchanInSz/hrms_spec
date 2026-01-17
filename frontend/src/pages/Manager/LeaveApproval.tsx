@@ -29,12 +29,12 @@ const LeaveApprovalPage: React.FC = () => {
     try {
       setLoading(true);
       if (activeTab === 'pending') {
-        const response = await leaveAPI.getPendingApprovals();
-        setPendingApprovals(response.data as Leave[] || []);
+        const response = await leaveAPI.getPendingApprovals() as any;
+        setPendingApprovals(response?.data || []);
         setAllLeaves([]);
       } else {
-        const response = await leaveAPI.getTeamLeaves({ status: activeTab, limit: 50 });
-        setAllLeaves(response.data as Leave[] || []);
+        const response = await leaveAPI.getTeamLeaves({ status: activeTab, limit: 50 }) as any;
+        setAllLeaves(response?.data?.data || []);
         setPendingApprovals([]);
       }
     } catch (err: any) {

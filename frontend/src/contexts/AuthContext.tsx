@@ -77,7 +77,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // 更新用户信息
   const updateUser = useCallback(async (data: any) => {
-    const response = await employeeAPI.updateProfile(data);
+    const response = await employeeAPI.updateProfile(data) as any;
     // PUT 请求返回完整响应，需要访问 response.data
     const updatedUser = { ...(user as any), ...(response.data as any) };
 

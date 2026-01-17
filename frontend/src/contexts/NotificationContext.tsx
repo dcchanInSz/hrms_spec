@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode, useRef } from 'react';
 import { notificationAPI } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import type { NotificationContextType } from '../types/context';
@@ -21,21 +21,50 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
+  // 使用useRef来跟踪正在进行的请求，避免重复请求
+  const pendingRequestsRef = useRef<Set<string>>(new Set());
+  const lastFetchRef = useRef<number>(0);
+  const CACHE_DURATION = 10000; // 10秒缓存
+
   // 获取通知列表
   const fetchNotifications = useCallback(async (params: any = {}) => {
+    const requestKey = `notifications:${JSON.stringify(params)}`;
+
+    // 如果请求正在进行中或刚请求过，则跳过
+    if (pendingRequestsRef.current.has(requestKey)) {
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastFetchRef.current < CACHE_DURATION) {
+      return;
+    }
+
     setLoading(true);
+    pendingRequestsRef.current.add(requestKey);
+    lastFetchRef.current = now;
+
     try {
       const response = await notificationAPI.getNotifications(params) as any;
       setNotifications(response.data?.data || []);
       return response;
     } finally {
       setLoading(false);
+      pendingRequestsRef.current.delete(requestKey);
     }
   }, []);
 
   // 获取未读数量
   const fetchUnreadCount = useCallback(async () => {
+    const requestKey = 'unread-count';
+
+    // 如果请求正在进行中，则跳过
+    if (pendingRequestsRef.current.has(requestKey)) {
+      return;
+    }
+
     try {
+      pendingRequestsRef.current.add(requestKey);
       const response = await notificationAPI.getUnreadCount() as any;
       setUnreadCount(response.data?.data?.count || 0);
     } catch (error: any) {
@@ -43,6 +72,8 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       if (error.status !== 401) {
         console.error('Failed to fetch unread count:', error);
       }
+    } finally {
+      pendingRequestsRef.current.delete(requestKey);
     }
   }, []);
 
@@ -57,26 +88,32 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   // 标记为已读
   const markAsRead = useCallback(async (id: number) => {
     try {
-      await notificationAPI.markAsRead(id);
+      await notificationAPI.markAsRead(id) as any;
       setNotifications(prev =>
         prev.map(n => (n.id === id ? { ...n, isRead: true } : n))
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
+
+      // 刷新未读数量
+      fetchUnreadCount();
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
     }
-  }, []);
+  }, [fetchUnreadCount]);
 
   // 标记全部为已读
   const markAllAsRead = useCallback(async () => {
     try {
-      await notificationAPI.markAllAsRead();
+      await notificationAPI.markAllAsRead() as any;
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
+
+      // 刷新通知列表
+      fetchNotifications({ limit: 5 });
     } catch (error) {
       console.error('Failed to mark all as read:', error);
     }
-  }, []);
+  }, [fetchNotifications]);
 
   // 添加新通知
   const addNotification = useCallback((notification: any) => {

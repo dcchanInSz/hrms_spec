@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { departmentAPI } from '@/services/api';
 import Table from '@/components/Table';
 import Button from '@/components/Button';
@@ -9,9 +9,9 @@ interface FormData {
   name: string;
   code: string;
   description: string;
-  parent_id: string | number | null;
-  sort_order: number;
-  is_active: boolean;
+  parentId: string | number | null;
+  sortOrder: number;
+  isActive: boolean;
 }
 
 interface FormErrors {
@@ -28,9 +28,9 @@ const HRDepartmentsPage: React.FC = () => {
     name: '',
     code: '',
     description: '',
-    parent_id: null,
-    sort_order: 0,
-    is_active: true,
+    parentId: null,
+    sortOrder: 0,
+    isActive: true,
   });
   const [saving, setSaving] = useState<boolean>(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
@@ -38,16 +38,35 @@ const HRDepartmentsPage: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
 
+  // 使用useRef来跟踪正在进行的请求，避免重复请求
+  const isFetchingRef = useRef<boolean>(false);
+  const lastFetchRef = useRef<number>(0);
+  const CACHE_DURATION = 30000; // 30秒缓存
+
   // 加载部门列表
   const loadDepartments = async () => {
+    // 防止重复请求
+    if (isFetchingRef.current) {
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastFetchRef.current < CACHE_DURATION) {
+      return;
+    }
+
     setLoading(true);
+    isFetchingRef.current = true;
+    lastFetchRef.current = now;
+
     try {
-      const response = await departmentAPI.getDepartments();
+      const response = await departmentAPI.getDepartments() as any;
       setDepartments(response.data || response);
     } catch (err: any) {
       console.error('Failed to load departments:', err);
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   };
 
@@ -62,9 +81,9 @@ const HRDepartmentsPage: React.FC = () => {
       name: '',
       code: '',
       description: '',
-      parent_id: null,
-      sort_order: 0,
-      is_active: true,
+      parentId: null,
+      sortOrder: 0,
+      isActive: true,
     });
     setErrors({});
     setModalOpen(true);
@@ -77,9 +96,9 @@ const HRDepartmentsPage: React.FC = () => {
       name: department.name || '',
       code: department.code || '',
       description: department.description || '',
-      parent_id: department.parentId || null,
-      sort_order: department.sort_order || 0,
-      is_active: department.isActive || true,
+      parentId: department.parentId || null,
+      sortOrder: department.sortOrder || 0,
+      isActive: department.isActive || true,
     });
     setErrors({});
     setModalOpen(true);
@@ -106,11 +125,14 @@ const HRDepartmentsPage: React.FC = () => {
     setSaving(true);
     try {
       if (editingDepartment) {
-        await departmentAPI.updateDepartment(editingDepartment.id, formData);
+        await departmentAPI.updateDepartment(editingDepartment.id, formData) as any;
       } else {
-        await departmentAPI.createDepartment(formData);
+        await departmentAPI.createDepartment(formData) as any;
       }
       setModalOpen(false);
+
+      // 保存成功后刷新数据
+      lastFetchRef.current = 0;
       loadDepartments();
     } catch (err: any) {
       console.error('Failed to save department:', err);
@@ -126,9 +148,12 @@ const HRDepartmentsPage: React.FC = () => {
 
     setDeleting(true);
     try {
-      await departmentAPI.deleteDepartment(selectedDepartment.id);
+      await departmentAPI.deleteDepartment(selectedDepartment.id) as any;
       setDeleteModalOpen(false);
       setSelectedDepartment(null);
+
+      // 删除成功后刷新数据
+      lastFetchRef.current = 0;
       loadDepartments();
     } catch (err: any) {
       console.error('Failed to delete department:', err);
@@ -169,15 +194,15 @@ const HRDepartmentsPage: React.FC = () => {
       dataIndex: 'managerName',
     },
     {
-      key: 'sort_order',
+      key: 'sortOrder',
       title: '排序',
-      dataIndex: 'sort_order',
+      dataIndex: 'sortOrder',
       width: '80px',
     },
     {
-      key: 'is_active',
+      key: 'isActive',
       title: '状态',
-      dataIndex: 'is_active',
+      dataIndex: 'isActive',
       width: '100px',
       render: (value: boolean) => (
         <span className={`badge ${value ? 'badge-success' : 'badge-gray'}`}>
@@ -239,7 +264,7 @@ const HRDepartmentsPage: React.FC = () => {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         title={editingDepartment ? '编辑部门' : '新增部门'}
-        size="md"
+        size="medium"
       >
         <form onSubmit={handleSave}>
           <div className="space-y-4">
@@ -274,8 +299,8 @@ const HRDepartmentsPage: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">上级部门</label>
               <select
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                value={formData.parent_id || ''}
-                onChange={(e) => setFormData((prev) => ({ ...prev, parent_id: e.target.value }))}
+                value={formData.parentId || ''}
+                onChange={(e) => setFormData((prev) => ({ ...prev, parentId: e.target.value }))}
               >
                 <option value="">无（顶级部门）</option>
                 {departments
@@ -305,8 +330,8 @@ const HRDepartmentsPage: React.FC = () => {
                 <input
                   type="number"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={formData.sort_order}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, sort_order: parseInt(e.target.value) || 0 }))}
+                  value={formData.sortOrder}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, sortOrder: parseInt(e.target.value) || 0 }))}
                 />
               </div>
 
@@ -314,8 +339,8 @@ const HRDepartmentsPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
                 <select
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={formData.is_active.toString()}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, is_active: e.target.value === 'true' }))}
+                  value={formData.isActive.toString()}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, isActive: e.target.value === 'true' }))}
                 >
                   <option value="true">启用</option>
                   <option value="false">禁用</option>
@@ -343,7 +368,7 @@ const HRDepartmentsPage: React.FC = () => {
           setSelectedDepartment(null);
         }}
         title="确认删除"
-        size="sm"
+        size="small"
       >
         <p className="text-gray-600 mb-6">
           确定要删除部门「{selectedDepartment?.name}」吗？删除后该部门将被禁用。

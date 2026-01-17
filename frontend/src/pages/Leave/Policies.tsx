@@ -32,7 +32,7 @@ function PoliciesPage() {
     try {
       setLoading(true);
       const response = await leaveAPI.getPolicies();
-      setPolicies(response.data || []);
+      setPolicies((response as any).data || []);
     } catch (err) {
       console.error('Failed to load policies:', err);
     } finally {
@@ -179,7 +179,7 @@ function PoliciesPage() {
         <div className="card-header flex justify-between items-center">
           <h3 className="text-lg font-semibold text-gray-900">假期类型详情</h3>
           {user?.role === 'hr' && (
-            <Button variant="primary" size="sm" onClick={() => setShowRolloverModal(true)}>
+            <Button variant="primary" size="small" onClick={() => setShowRolloverModal(true)}>
               年度结转
             </Button>
           )}
@@ -201,7 +201,7 @@ function PoliciesPage() {
           isOpen={!!selectedPolicy}
           onClose={() => setSelectedPolicy(null)}
           title="政策详情"
-          size="md"
+          size="medium"
         >
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
@@ -251,7 +251,7 @@ function PoliciesPage() {
           isOpen={showRolloverModal}
           onClose={() => setShowRolloverModal(false)}
           title="年度结转"
-          size="md"
+          size="medium"
         >
           <div className="space-y-4">
             <p className="text-sm text-gray-600">

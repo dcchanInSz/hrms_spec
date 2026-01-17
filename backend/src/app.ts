@@ -28,15 +28,17 @@ const PORT: number = parseInt((process.env as any).PORT || '3000', 10);
 // 安全头中间件 (Helmet.js)
 app.use(securityHeaders);
 
-// 速率限制
-app.use('/api', rateLimiters.api.middleware);
-app.use('/api/auth/login', rateLimiters.login.middleware);
-
-// 中间件
+// CORS - 必须在速率限制之前，避免预检请求被拦截
 app.use(cors({
   origin: (process.env as any).CORS_ORIGIN || 'http://localhost:5173',
   credentials: true,
 }));
+
+// 速率限制
+app.use('/api', rateLimiters.api.middleware);
+app.use('/api/auth/login', rateLimiters.login.middleware);
+
+// 其他中间件
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

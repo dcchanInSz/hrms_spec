@@ -168,7 +168,7 @@ const OrgChartPage = () => {
   const loadOrgChart = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await orgAPI.getOrgChart({ includeEmployees: true });
+      const data = await orgAPI.getOrgChart({ includeEmployees: true }) as any;
       setOrgChart(data.departments);
       setStatistics(data.statistics);
     } catch (error) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { teamAPI } from '@/services/api';
@@ -37,19 +37,38 @@ const ManagerDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const response = await teamAPI.getDashboard();
-        setDashboardData(response.data as DashboardData);
-      } catch (err: any) {
-        setError(err.message || '获取仪表盘数据失败');
-        console.error('Failed to fetch dashboard data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // 使用useRef来跟踪正在进行的请求，避免重复请求
+  const isFetchingRef = useRef<boolean>(false);
+  const lastFetchRef = useRef<number>(0);
+  const CACHE_DURATION = 30000; // 30秒缓存
 
+  const fetchDashboardData = async () => {
+    // 防止重复请求
+    if (isFetchingRef.current) {
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastFetchRef.current < CACHE_DURATION) {
+      return;
+    }
+
+    isFetchingRef.current = true;
+    lastFetchRef.current = now;
+
+    try {
+      const response = await teamAPI.getDashboard() as any;
+      setDashboardData(response.data as DashboardData);
+    } catch (err: any) {
+      setError(err.message || '获取仪表盘数据失败');
+      console.error('Failed to fetch dashboard data:', err);
+    } finally {
+      setLoading(false);
+      isFetchingRef.current = false;
+    }
+  };
+
+  useEffect(() => {
     fetchDashboardData();
   }, []);
 

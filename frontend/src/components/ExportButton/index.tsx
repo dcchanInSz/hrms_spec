@@ -16,7 +16,7 @@ const ExportButton = ({
   const handleExport = async () => {
     try {
       setLoading(true);
-      const response = await reportAPI.exportReport(type, format, params);
+      const response = await reportAPI.exportReport(type, format, params) as any;
 
       // 创建下载链接
       const data = typeof response === 'string' ? response : response.data || response;

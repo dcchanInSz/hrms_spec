@@ -29,15 +29,16 @@ const NotificationsPage: React.FC = () => {
       const response = await notificationAPI.getNotifications({
         page: pagination.page,
         limit: pagination.limit,
-      });
-      setNotifications(response.data || []);
+      }) as any;
+      setNotifications(response?.data?.data || []);
       setPagination(prev => ({
         ...prev,
-        total: response.pagination?.total || 0,
-        totalPages: response.pagination?.totalPages || 0,
+        total: response?.data?.pagination?.total || 0,
+        totalPages: response?.data?.pagination?.totalPages || 0,
       }));
     } catch (err: any) {
       console.error('Failed to load notifications:', err);
+      setNotifications([]);
     } finally {
       setLoading(false);
     }
@@ -46,8 +47,8 @@ const NotificationsPage: React.FC = () => {
   // 加载未读数量
   const loadUnreadCount = async () => {
     try {
-      const response = await notificationAPI.getUnreadCount();
-      setUnreadCount(response.data?.count || 0);
+      const response = await notificationAPI.getUnreadCount() as any;
+      setUnreadCount(response?.data?.count || 0);
     } catch (err: any) {
       console.error('Failed to load unread count:', err);
     }
@@ -61,7 +62,7 @@ const NotificationsPage: React.FC = () => {
   // 标记为已读
   const handleMarkAsRead = async (id: number) => {
     try {
-      await notificationAPI.markAsRead(id);
+      await notificationAPI.markAsRead(id) as any;
       setNotifications(prev =>
         prev.map(n => (n.id === id ? { ...n, isRead: true } : n))
       );
@@ -74,7 +75,7 @@ const NotificationsPage: React.FC = () => {
   // 标记全部为已读
   const handleMarkAllAsRead = async () => {
     try {
-      await notificationAPI.markAllAsRead();
+      await notificationAPI.markAllAsRead() as any;
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (err: any) {
@@ -85,7 +86,7 @@ const NotificationsPage: React.FC = () => {
   // 删除通知
   const handleDelete = async (id: number) => {
     try {
-      await notificationAPI.deleteNotification(id);
+      await notificationAPI.deleteNotification(id) as any;
       setNotifications(prev => prev.filter(n => n.id !== id));
       const notification = notifications.find(n => n.id === id);
       if (notification && !notification.isRead) {
@@ -243,7 +244,7 @@ const NotificationsPage: React.FC = () => {
           <div className="px-6 py-4 border-t border-gray-100 flex justify-center space-x-2">
             <Button
               variant="secondary"
-              size="sm"
+              size="small"
               disabled={pagination.page === 1}
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
             >
@@ -254,7 +255,7 @@ const NotificationsPage: React.FC = () => {
             </span>
             <Button
               variant="secondary"
-              size="sm"
+              size="small"
               disabled={pagination.page === pagination.totalPages}
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
             >

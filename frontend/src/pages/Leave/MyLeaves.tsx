@@ -150,7 +150,7 @@ const MyLeavesPage = () => {
         <div className="flex space-x-2">
           <Button
             variant="ghost"
-            size="sm"
+            size="small"
             onClick={() => setSelectedLeave(record)}
           >
             查看
@@ -158,7 +158,7 @@ const MyLeavesPage = () => {
           {record.status === 'pending' && (
             <Button
               variant="ghost"
-              size="sm"
+              size="small"
               onClick={() => {
                 setSelectedLeave(record);
                 setCancelModalOpen(true);
@@ -224,7 +224,7 @@ const MyLeavesPage = () => {
           <div className="px-6 py-4 border-t border-gray-100 flex justify-center space-x-2">
             <Button
               variant="secondary"
-              size="sm"
+              size="small"
               disabled={pagination.page === 1}
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
             >
@@ -235,7 +235,7 @@ const MyLeavesPage = () => {
             </span>
             <Button
               variant="secondary"
-              size="sm"
+              size="small"
               disabled={pagination.page === pagination.totalPages}
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
             >
@@ -251,7 +251,7 @@ const MyLeavesPage = () => {
           isOpen={!!selectedLeave}
           onClose={() => setSelectedLeave(null)}
           title="请假详情"
-          size="md"
+          size="medium"
         >
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -310,7 +310,7 @@ const MyLeavesPage = () => {
           setSelectedLeave(null);
         }}
         title="确认撤回"
-        size="sm"
+        size="small"
       >
         <p className="text-gray-600 mb-6">
           确定要撤回该请假申请吗？撤回后申请将被取消。

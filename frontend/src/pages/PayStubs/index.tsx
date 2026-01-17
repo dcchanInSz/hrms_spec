@@ -41,12 +41,14 @@ const PayStubsPage: React.FC = () => {
         year: selectedYear,
         page: pagination.page,
         limit: pagination.limit,
-      });
-      setPaystubs(response.data || []);
+      }) as any;
+      // 后端返回: { success: true, data: { data: [...], pagination: {...} }, message: ... }
+      const paystubsData = response?.data?.data || [];
+      setPaystubs(paystubsData);
       setPagination(prev => ({
         ...prev,
-        total: response.pagination?.total || 0,
-        totalPages: response.pagination?.totalPages || 0,
+        total: response?.data?.pagination?.total || 0,
+        totalPages: response?.data?.pagination?.totalPages || 0,
       }));
 
       // 加载年度汇总
@@ -55,13 +57,14 @@ const PayStubsPage: React.FC = () => {
           year: selectedYear,
           page: 1,
           limit: 100,
-        });
-        calculateSummary(summaryRes.data || []);
+        }) as any;
+        calculateSummary(summaryRes?.data?.data || []);
       } catch (e) {
         // 忽略汇总错误
       }
     } catch (err: any) {
       console.error('Failed to load paystubs:', err);
+      setPaystubs([]);
     } finally {
       setLoading(false);
     }
@@ -224,7 +227,7 @@ const PayStubsPage: React.FC = () => {
           <div className="px-6 py-4 border-t border-gray-100 flex justify-center space-x-2">
             <Button
               variant="secondary"
-              size="sm"
+              size="small"
               disabled={pagination.page === 1}
               onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
             >
@@ -235,7 +238,7 @@ const PayStubsPage: React.FC = () => {
             </span>
             <Button
               variant="secondary"
-              size="sm"
+              size="small"
               disabled={pagination.page === pagination.totalPages}
               onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
             >
@@ -250,7 +253,7 @@ const PayStubsPage: React.FC = () => {
         isOpen={!!selectedPaystub}
         onClose={() => setSelectedPaystub(null)}
         title="工资单详情"
-        size="lg"
+        size="large"
       >
         {selectedPaystub && (
           <div className="space-y-6">

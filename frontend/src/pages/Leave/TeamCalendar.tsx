@@ -29,14 +29,15 @@ function TeamCalendarPage() {
         start_date: startDate,
         end_date: endDate,
         limit: 100,
-      });
+      }) as any;
 
-      const events = (response.data || []).filter(
-        (leave) => leave.status === 'approved' || leave.status === 'pending'
+      const events = (response?.data?.data || []).filter(
+        (leave: any) => leave.status === 'approved' || leave.status === 'pending'
       );
       setLeaveEvents(events);
     } catch (err) {
       console.error('Failed to load team calendar:', err);
+      setLeaveEvents([]);
     } finally {
       setLoading(false);
     }
@@ -161,31 +162,31 @@ function TeamCalendarPage() {
         <div className="card-body">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
-              <Button variant="secondary" size="sm" onClick={() => navigateMonth(-1)}>
+              <Button variant="secondary" size="small" onClick={() => navigateMonth(-1)}>
                 &lt; 上月
               </Button>
               <h2 className="text-xl font-semibold text-gray-900">
                 {currentDate.getFullYear()}年 {currentDate.getMonth() + 1}月
               </h2>
-              <Button variant="secondary" size="sm" onClick={() => navigateMonth(1)}>
+              <Button variant="secondary" size="small" onClick={() => navigateMonth(1)}>
                 下月 &gt;
               </Button>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm" onClick={goToToday}>
+              <Button variant="outline" size="small" onClick={goToToday}>
                 今天
               </Button>
               <div className="flex items-center space-x-2">
                 <Button
                   variant={viewMode === 'month' ? 'primary' : 'outline'}
-                  size="sm"
+                  size="small"
                   onClick={() => setViewMode('month')}
                 >
                   月视图
                 </Button>
                 <Button
                   variant={viewMode === 'week' ? 'primary' : 'outline'}
-                  size="sm"
+                  size="small"
                   onClick={() => setViewMode('week')}
                 >
                   周视图
