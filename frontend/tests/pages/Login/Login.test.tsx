@@ -7,11 +7,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
-import LoginPage from '../../src/pages/Login';
-import { useAuth } from '../../src/hooks/useAuth';
+import LoginPage from '../../../src/pages/Login';
+import { useAuth } from '../../../src/hooks/useAuth';
 
 // Mock the useAuth hook
-vi.mock('../../src/hooks/useAuth', () => ({
+vi.mock('../../../src/hooks/useAuth', () => ({
   useAuth: vi.fn(),
 }));
 
