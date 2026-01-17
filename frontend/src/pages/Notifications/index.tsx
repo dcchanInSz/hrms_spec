@@ -1,18 +1,26 @@
 import { useState, useEffect } from 'react';
 import { notificationAPI } from '@/services/api';
 import Button from '@/components/Button';
+import { Notification } from '@/types/entities';
 
-function NotificationsPage() {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
+interface PaginationState {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+const NotificationsPage: React.FC = () => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
     limit: 20,
     total: 0,
     totalPages: 0,
   });
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [selectedNotification, setSelectedNotification] = useState(null);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
 
   // 加载通知列表
   const loadNotifications = async () => {
@@ -28,7 +36,7 @@ function NotificationsPage() {
         total: response.pagination?.total || 0,
         totalPages: response.pagination?.totalPages || 0,
       }));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load notifications:', err);
     } finally {
       setLoading(false);
@@ -40,7 +48,7 @@ function NotificationsPage() {
     try {
       const response = await notificationAPI.getUnreadCount();
       setUnreadCount(response.data?.count || 0);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load unread count:', err);
     }
   };
@@ -51,14 +59,14 @@ function NotificationsPage() {
   }, [pagination.page]);
 
   // 标记为已读
-  const handleMarkAsRead = async (id) => {
+  const handleMarkAsRead = async (id: number) => {
     try {
       await notificationAPI.markAsRead(id);
       setNotifications(prev =>
-        prev.map(n => (n.id === id ? { ...n, is_read: true } : n))
+        prev.map(n => (n.id === id ? { ...n, isRead: true } : n))
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to mark as read:', err);
     }
   };
@@ -67,45 +75,46 @@ function NotificationsPage() {
   const handleMarkAllAsRead = async () => {
     try {
       await notificationAPI.markAllAsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to mark all as read:', err);
     }
   };
 
   // 删除通知
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     try {
       await notificationAPI.deleteNotification(id);
       setNotifications(prev => prev.filter(n => n.id !== id));
       const notification = notifications.find(n => n.id === id);
-      if (notification && !notification.is_read) {
+      if (notification && !notification.isRead) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to delete:', err);
     }
   };
 
-  const typeLabels = {
+  const typeLabels: Record<string, string> = {
     leave_request: '请假申请',
     leave_approved: '审批通过',
     leave_rejected: '审批拒绝',
     system: '系统通知',
   };
 
-  const typeColors = {
+  const typeColors: Record<string, string> = {
     leave_request: 'bg-blue-100 text-blue-800',
     leave_approved: 'bg-green-100 text-green-800',
     leave_rejected: 'bg-red-100 text-red-800',
     system: 'bg-gray-100 text-gray-800',
   };
 
-  const formatTime = (date) => {
+  const formatTime = (date: string | undefined) => {
+    if (!date) return '';
     const d = new Date(date);
     const now = new Date();
-    const diff = now - d;
+    const diff = now.getTime() - d.getTime();
 
     if (diff < 60000) {
       return '刚刚';
@@ -160,12 +169,12 @@ function NotificationsPage() {
                 <div
                   key={notification.id}
                   className={`p-4 hover:bg-gray-50 transition-colors ${
-                    !notification.is_read ? 'bg-blue-50/50' : ''
+                    !notification.isRead ? 'bg-blue-50/50' : ''
                   }`}
                 >
                   <div className="flex items-start space-x-4">
                     {/* 未读标记 */}
-                    {!notification.is_read && (
+                    {!notification.isRead && (
                       <div className="flex-shrink-0 mt-1">
                         <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                       </div>
@@ -177,11 +186,11 @@ function NotificationsPage() {
                           {typeLabels[notification.type] || '通知'}
                         </span>
                         <span className="text-xs text-gray-400">
-                          {formatTime(notification.created_at)}
+                          {formatTime(notification.createdAt)}
                         </span>
                       </div>
 
-                      <h3 className={`font-medium ${!notification.is_read ? 'text-gray-900' : 'text-gray-700'}`}>
+                      <h3 className={`font-medium ${!notification.isRead ? 'text-gray-900' : 'text-gray-700'}`}>
                         {notification.title}
                       </h3>
                       <p className="text-sm text-gray-600 mt-1 line-clamp-2">
@@ -195,7 +204,7 @@ function NotificationsPage() {
                             className="text-sm text-primary-600 hover:text-primary-700"
                             onClick={(e) => {
                               e.preventDefault();
-                              if (!notification.is_read) {
+                              if (!notification.isRead) {
                                 handleMarkAsRead(notification.id);
                               }
                               window.location.href = notification.link;
@@ -205,7 +214,7 @@ function NotificationsPage() {
                           </a>
                         )}
 
-                        {!notification.is_read && (
+                        {!notification.isRead && (
                           <button
                             className="text-sm text-gray-500 hover:text-gray-700"
                             onClick={() => handleMarkAsRead(notification.id)}
@@ -256,6 +265,6 @@ function NotificationsPage() {
       </div>
     </div>
   );
-}
+};
 
 export default NotificationsPage;

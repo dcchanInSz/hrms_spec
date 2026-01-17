@@ -4,26 +4,41 @@ import { employeeAPI, departmentAPI } from '@/services/api';
 import Table from '@/components/Table';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
+import { Employee, Department } from '@/types/entities';
 
-function HREmployeesPage() {
-  const [employees, setEmployees] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
+interface Filters {
+  department_id: string;
+  status: string;
+  role: string;
+  search: string;
+}
+
+interface PaginationState {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+const HREmployeesPage: React.FC = () => {
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
     limit: 10,
     total: 0,
     totalPages: 0,
   });
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     department_id: '',
     status: '',
     role: '',
     search: '',
   });
-  const [departments, setDepartments] = useState([]);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
+  const [deleting, setDeleting] = useState<boolean>(false);
 
   // 加载员工列表
   const loadEmployees = async () => {
@@ -40,7 +55,7 @@ function HREmployeesPage() {
         total: response.pagination?.total || 0,
         totalPages: response.pagination?.totalPages || 0,
       }));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load employees:', err);
     } finally {
       setLoading(false);
@@ -52,7 +67,7 @@ function HREmployeesPage() {
     try {
       const response = await departmentAPI.getDepartments();
       setDepartments(response.data || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load departments:', err);
     }
   };
@@ -75,7 +90,7 @@ function HREmployeesPage() {
       setDeleteModalOpen(false);
       setSelectedEmployee(null);
       loadEmployees();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to delete employee:', err);
       alert(err.message || '删除失败');
     } finally {
@@ -83,23 +98,23 @@ function HREmployeesPage() {
     }
   };
 
-  const statusLabels = {
+  const statusLabels: Record<string, string> = {
     active: '在职',
     inactive: '离职',
   };
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     active: 'badge-success',
     inactive: 'badge-gray',
   };
 
-  const roleLabels = {
+  const roleLabels: Record<string, string> = {
     employee: '员工',
     manager: '经理',
     hr: 'HR',
   };
 
-  const roleColors = {
+  const roleColors: Record<string, string> = {
     employee: 'badge-gray',
     manager: 'badge-info',
     hr: 'badge-primary',
@@ -107,14 +122,16 @@ function HREmployeesPage() {
 
   const columns = [
     {
+      key: 'employee_no',
       title: '员工编号',
-      dataIndex: 'employee_no',
+      dataIndex: 'employeeId',
       width: '120px',
     },
     {
+      key: 'name',
       title: '姓名',
       dataIndex: 'name',
-      render: (value, record) => (
+      render: (value: string, record: Employee) => (
         <div className="flex items-center">
           <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
             <span className="text-primary-700 font-medium text-sm">
@@ -126,41 +143,47 @@ function HREmployeesPage() {
       ),
     },
     {
+      key: 'department_name',
       title: '部门',
-      dataIndex: 'department_name',
+      dataIndex: 'departmentName',
     },
     {
+      key: 'position_title',
       title: '职位',
-      dataIndex: 'position_title',
+      dataIndex: 'positionName',
     },
     {
+      key: 'role',
       title: '角色',
       dataIndex: 'role',
-      render: (value) => (
+      render: (value: string) => (
         <span className={`badge ${roleColors[value] || 'badge-gray'}`}>
           {roleLabels[value] || value}
         </span>
       ),
     },
     {
+      key: 'status',
       title: '状态',
       dataIndex: 'status',
-      render: (value) => (
+      render: (value: string) => (
         <span className={`badge ${statusColors[value] || 'badge-gray'}`}>
           {statusLabels[value] || value}
         </span>
       ),
     },
     {
+      key: 'hire_date',
       title: '入职日期',
-      dataIndex: 'hire_date',
+      dataIndex: 'hireDate',
       width: '120px',
     },
     {
+      key: 'actions',
       title: '操作',
       dataIndex: 'actions',
       width: '150px',
-      render: (_, record) => (
+      render: (_: any, record: Employee) => (
         <div className="flex space-x-2">
           <Link
             to={`/hr/employees/${record.id}`}
@@ -272,8 +295,6 @@ function HREmployeesPage() {
             columns={columns}
             data={employees}
             loading={loading}
-            emptyMessage="暂无员工数据"
-            onRowClick={(row) => setSelectedEmployee(row)}
           />
         </div>
 
@@ -333,6 +354,6 @@ function HREmployeesPage() {
       </Modal>
     </div>
   );
-}
+};
 
 export default HREmployeesPage;

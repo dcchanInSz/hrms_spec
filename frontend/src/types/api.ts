@@ -7,6 +7,12 @@ export interface ApiResponse<T> {
   data: T;
   message?: string;
   errors?: Record<string, string[]>;
+  pagination?: {
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  };
 }
 
 export interface PaginatedResponse<T> {
@@ -105,6 +111,7 @@ export interface AuditLog {
   id: number;
   userId: number;
   userName: string;
+  userEmail: string;
   action: string;
   entityType: string;
   entityId?: number;

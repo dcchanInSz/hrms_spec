@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, ReactNode } from 'react';
 import { useAuth } from './hooks/useAuth';
 
 // 布局组件
@@ -31,17 +31,25 @@ const HRAuditLogsPage = lazy(() => import('./pages/HR/AuditLogs'));
 const HRReportsPage = lazy(() => import('./pages/HR/Reports/Dashboard'));
 const OrgChartPage = lazy(() => import('./pages/HR/OrgChart'));
 
+// 用户角色类型
+type UserRole = 'employee' | 'manager' | 'hr';
+
 // 加载骨架屏
-function PageLoader() {
+const PageLoader: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
     </div>
   );
-}
+};
 
 // 受保护的路由包装器
-function ProtectedRoute({ children, allowedRoles }) {
+interface ProtectedRouteProps {
+  children: ReactNode;
+  allowedRoles?: UserRole[];
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -56,14 +64,14 @@ function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && !allowedRoles.includes(user.role as UserRole)) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  return children;
-}
+  return <>{children}</>;
+};
 
-function App() {
+const App: React.FC = () => {
   return (
     <Routes>
       {/* 公开路由 */}
@@ -276,6 +284,6 @@ function App() {
       />
     </Routes>
   );
-}
+};
 
 export default App;

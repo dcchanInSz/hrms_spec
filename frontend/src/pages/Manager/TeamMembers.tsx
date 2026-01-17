@@ -1,11 +1,28 @@
 import { useState, useEffect } from 'react';
 import { teamAPI } from '@/services/api';
 
-function TeamMembersPage() {
-  const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [includeInactive, setIncludeInactive] = useState(false);
+interface TeamMember {
+  id: number;
+  name: string;
+  email: string;
+  departmentName?: string;
+  positionName?: string;
+  hireDate: string;
+  status: 'active' | 'inactive' | 'terminated';
+  leaveStats?: {
+    pending_leaves: number;
+    rejected_leaves: number;
+    used_days: number;
+  };
+}
+
+type Status = 'active' | 'inactive';
+
+const TeamMembersPage: React.FC = () => {
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [includeInactive, setIncludeInactive] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchTeamMembers = async () => {
@@ -13,8 +30,8 @@ function TeamMembersPage() {
         const response = await teamAPI.getMembers({
           include_inactive: includeInactive,
         });
-        setMembers(response.data);
-      } catch (err) {
+        setMembers(response.data as TeamMember[]);
+      } catch (err: any) {
         setError(err.message || '获取团队成员失败');
         console.error('Failed to fetch team members:', err);
       } finally {
@@ -25,7 +42,7 @@ function TeamMembersPage() {
     fetchTeamMembers();
   }, [includeInactive]);
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status: Status) => {
     if (status === 'active') {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
@@ -40,7 +57,7 @@ function TeamMembersPage() {
     );
   };
 
-  const formatDate = (date) => {
+  const formatDate = (date: string | undefined): string => {
     if (!date) return '-';
     return new Date(date).toLocaleDateString('zh-CN');
   };
@@ -98,7 +115,7 @@ function TeamMembersPage() {
           <div className="card-body">
             <p className="text-sm text-gray-500">待审批假期</p>
             <p className="text-2xl font-semibold text-yellow-600">
-              {members.reduce((sum, m) => sum + parseInt(m.leaveStats?.pending_leaves || 0), 0)}
+              {members.reduce((sum, m) => sum + parseInt(m.leaveStats?.pending_leaves?.toString() || '0'), 0)}
             </p>
           </div>
         </div>
@@ -106,7 +123,7 @@ function TeamMembersPage() {
           <div className="card-body">
             <p className="text-sm text-gray-500">已用假期(天)</p>
             <p className="text-2xl font-semibold text-blue-600">
-              {members.reduce((sum, m) => sum + parseFloat(m.leaveStats?.used_days || 0), 0)}
+              {members.reduce((sum, m) => sum + parseFloat(m.leaveStats?.used_days?.toString() || '0'), 0)}
             </p>
           </div>
         </div>
@@ -160,14 +177,14 @@ function TeamMembersPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{member.department_name || '-'}</div>
-                    <div className="text-sm text-gray-500">{member.position_title || '-'}</div>
+                    <div className="text-sm text-gray-900">{member.departmentName || '-'}</div>
+                    <div className="text-sm text-gray-500">{member.positionName || '-'}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(member.hire_date)}
+                    {formatDate(member.hireDate)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(member.status)}
+                    {getStatusBadge(member.status as Status)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex items-center space-x-2">
@@ -202,6 +219,6 @@ function TeamMembersPage() {
       </div>
     </div>
   );
-}
+};
 
 export default TeamMembersPage;

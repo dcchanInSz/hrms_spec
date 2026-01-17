@@ -3,26 +3,40 @@ import { departmentAPI } from '@/services/api';
 import Table from '@/components/Table';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
+import { Department } from '@/types/entities';
 
-function HRDepartmentsPage() {
-  const [departments, setDepartments] = useState([]);
-  const [loading, setLoading] = useState(true);
+interface FormData {
+  name: string;
+  code: string;
+  description: string;
+  parent_id: string | number | null;
+  sort_order: number;
+  is_active: boolean;
+}
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState(null);
-  const [formData, setFormData] = useState({
+interface FormErrors {
+  name?: string;
+}
+
+const HRDepartmentsPage: React.FC = () => {
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     code: '',
     description: '',
-    parent_id: '',
+    parent_id: null,
     sort_order: 0,
     is_active: true,
   });
-  const [saving, setSaving] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState(null);
-  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState<boolean>(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
+  const [deleting, setDeleting] = useState<boolean>(false);
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   // 加载部门列表
   const loadDepartments = async () => {
@@ -30,7 +44,7 @@ function HRDepartmentsPage() {
     try {
       const response = await departmentAPI.getDepartments();
       setDepartments(response.data || response);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load departments:', err);
     } finally {
       setLoading(false);
@@ -48,7 +62,7 @@ function HRDepartmentsPage() {
       name: '',
       code: '',
       description: '',
-      parent_id: '',
+      parent_id: null,
       sort_order: 0,
       is_active: true,
     });
@@ -57,15 +71,15 @@ function HRDepartmentsPage() {
   };
 
   // 打开编辑弹窗
-  const handleEdit = (department) => {
+  const handleEdit = (department: Department) => {
     setEditingDepartment(department);
     setFormData({
       name: department.name || '',
       code: department.code || '',
       description: department.description || '',
-      parent_id: department.parent_id || '',
+      parent_id: department.parentId || null,
       sort_order: department.sort_order || 0,
-      is_active: department.is_active,
+      is_active: department.isActive || true,
     });
     setErrors({});
     setModalOpen(true);
@@ -73,7 +87,7 @@ function HRDepartmentsPage() {
 
   // 表单验证
   const validate = () => {
-    const newErrors = {};
+    const newErrors: FormErrors = {};
     if (!formData.name.trim()) {
       newErrors.name = '请输入部门名称';
     }
@@ -82,7 +96,7 @@ function HRDepartmentsPage() {
   };
 
   // 保存部门
-  const handleSave = async (e) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validate()) {
@@ -98,7 +112,7 @@ function HRDepartmentsPage() {
       }
       setModalOpen(false);
       loadDepartments();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to save department:', err);
       alert(err.message || '保存失败');
     } finally {
@@ -116,7 +130,7 @@ function HRDepartmentsPage() {
       setDeleteModalOpen(false);
       setSelectedDepartment(null);
       loadDepartments();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to delete department:', err);
       alert(err.message || '删除失败');
     } finally {
@@ -126,16 +140,18 @@ function HRDepartmentsPage() {
 
   const columns = [
     {
+      key: 'code',
       title: '部门编码',
       dataIndex: 'code',
       width: '120px',
     },
     {
+      key: 'name',
       title: '部门名称',
       dataIndex: 'name',
-      render: (value, record) => (
+      render: (value: string, record: Department) => (
         <div className="flex items-center">
-          {record.parent_name && (
+          {record.parentName && (
             <span className="text-gray-400 mr-1">└─</span>
           )}
           <span className="font-medium">{value}</span>
@@ -143,33 +159,38 @@ function HRDepartmentsPage() {
       ),
     },
     {
+      key: 'parent_name',
       title: '上级部门',
-      dataIndex: 'parent_name',
+      dataIndex: 'parentName',
     },
     {
+      key: 'manager_name',
       title: '部门经理',
-      dataIndex: 'manager_name',
+      dataIndex: 'managerName',
     },
     {
+      key: 'sort_order',
       title: '排序',
       dataIndex: 'sort_order',
       width: '80px',
     },
     {
+      key: 'is_active',
       title: '状态',
       dataIndex: 'is_active',
       width: '100px',
-      render: (value) => (
+      render: (value: boolean) => (
         <span className={`badge ${value ? 'badge-success' : 'badge-gray'}`}>
           {value ? '启用' : '禁用'}
         </span>
       ),
     },
     {
+      key: 'actions',
       title: '操作',
       dataIndex: 'actions',
       width: '150px',
-      render: (_, record) => (
+      render: (_: any, record: Department) => (
         <div className="flex space-x-2">
           <button
             onClick={() => handleEdit(record)}
@@ -209,8 +230,6 @@ function HRDepartmentsPage() {
             columns={columns}
             data={departments}
             loading={loading}
-            emptyMessage="暂无部门数据"
-            rowKey="id"
           />
         </div>
       </div>
@@ -255,7 +274,7 @@ function HRDepartmentsPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">上级部门</label>
               <select
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                value={formData.parent_id}
+                value={formData.parent_id || ''}
                 onChange={(e) => setFormData((prev) => ({ ...prev, parent_id: e.target.value }))}
               >
                 <option value="">无（顶级部门）</option>
@@ -295,7 +314,7 @@ function HRDepartmentsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
                 <select
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  value={formData.is_active}
+                  value={formData.is_active.toString()}
                   onChange={(e) => setFormData((prev) => ({ ...prev, is_active: e.target.value === 'true' }))}
                 >
                   <option value="true">启用</option>
@@ -346,6 +365,6 @@ function HRDepartmentsPage() {
       </Modal>
     </div>
   );
-}
+};
 
 export default HRDepartmentsPage;

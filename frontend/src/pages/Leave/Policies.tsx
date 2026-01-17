@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import Table from '@/components/Table';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
+import { LeavePolicy } from '@/types/entities';
 
 /**
  * Policies Page
@@ -11,17 +12,17 @@ import Modal from '@/components/Modal';
  */
 function PoliciesPage() {
   const { user } = useAuth();
-  const [policies, setPolicies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedPolicy, setSelectedPolicy] = useState(null);
-  const [showRolloverModal, setShowRolloverModal] = useState(false);
+  const [policies, setPolicies] = useState<LeavePolicy[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedPolicy, setSelectedPolicy] = useState<LeavePolicy | null>(null);
+  const [showRolloverModal, setShowRolloverModal] = useState<boolean>(false);
   const [rolloverForm, setRolloverForm] = useState({
     employee_id: '',
     leave_type: '',
     carryover_days: 0,
     target_year: new Date().getFullYear() + 1,
   });
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
     loadPolicies();
@@ -39,7 +40,7 @@ function PoliciesPage() {
     }
   };
 
-  const getLeaveTypeName = (type) => {
+  const getLeaveTypeName = (type: string): string => {
     const names = {
       annual: '年假',
       sick: '病假',

@@ -2,19 +2,47 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { teamAPI } from '@/services/api';
+import { User } from '@/types/entities';
 
-function ManagerDashboardPage() {
+interface DashboardData {
+  teamSize: number;
+  leaveStats: {
+    pending_count: number;
+    approved_count: number;
+    approved_days: number;
+  };
+  pendingApprovals: Array<{
+    id: number;
+    employee_name: string;
+    start_date: string;
+    end_date: string;
+    days: number;
+    leave_type: string;
+    reason?: string;
+  }>;
+  todayLeaves: Array<{
+    id: number;
+    employee_name: string;
+    start_date: string;
+    end_date: string;
+    leave_type: string;
+  }>;
+}
+
+type LeaveType = 'annual' | 'sick' | 'personal' | 'other';
+
+const ManagerDashboardPage: React.FC = () => {
   const { user } = useAuth();
-  const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         const response = await teamAPI.getDashboard();
-        setDashboardData(response.data);
-      } catch (err) {
+        setDashboardData(response.data as DashboardData);
+      } catch (err: any) {
         setError(err.message || '获取仪表盘数据失败');
         console.error('Failed to fetch dashboard data:', err);
       } finally {
@@ -25,8 +53,8 @@ function ManagerDashboardPage() {
     fetchDashboardData();
   }, []);
 
-  const getLeaveTypeName = (type) => {
-    const names = {
+  const getLeaveTypeName = (type: LeaveType): string => {
+    const names: Record<LeaveType, string> = {
       annual: '年假',
       sick: '病假',
       personal: '事假',
@@ -35,8 +63,8 @@ function ManagerDashboardPage() {
     return names[type] || type;
   };
 
-  const getLeaveTypeColor = (type) => {
-    const colors = {
+  const getLeaveTypeColor = (type: LeaveType): string => {
+    const colors: Record<LeaveType, string> = {
       annual: 'bg-blue-100 text-blue-800',
       sick: 'bg-red-100 text-red-800',
       personal: 'bg-yellow-100 text-yellow-800',
@@ -69,7 +97,7 @@ function ManagerDashboardPage() {
       <div className="card mb-6">
         <div className="card-body">
           <h2 className="text-xl font-semibold text-gray-900">
-            欢迎您，{user?.name}
+            欢迎您，{(user as User)?.name}
           </h2>
           <p className="text-gray-600 mt-1">
             当前管理团队人数：<span className="font-medium">{dashboardData?.teamSize || 0} 人</span>
@@ -162,7 +190,7 @@ function ManagerDashboardPage() {
             </Link>
           </div>
           <div className="card-body p-0">
-            {dashboardData?.pendingApprovals?.length > 0 ? (
+            {dashboardData?.pendingApprovals && dashboardData.pendingApprovals.length > 0 ? (
               <div className="divide-y divide-gray-100">
                 {dashboardData.pendingApprovals.slice(0, 5).map((leave) => (
                   <div key={leave.id} className="p-4 hover:bg-gray-50">
@@ -173,8 +201,8 @@ function ManagerDashboardPage() {
                           {leave.start_date} 至 {leave.end_date} · {leave.days}天
                         </p>
                       </div>
-                      <span className={`px-2 py-1 text-xs rounded-full ${getLeaveTypeColor(leave.leave_type)}`}>
-                        {getLeaveTypeName(leave.leave_type)}
+                      <span className={`px-2 py-1 text-xs rounded-full ${getLeaveTypeColor(leave.leave_type as LeaveType)}`}>
+                        {getLeaveTypeName(leave.leave_type as LeaveType)}
                       </span>
                     </div>
                     {leave.reason && (
@@ -200,7 +228,7 @@ function ManagerDashboardPage() {
             <h3 className="text-lg font-semibold text-gray-900">今日请假人员</h3>
           </div>
           <div className="card-body p-0">
-            {dashboardData?.todayLeaves?.length > 0 ? (
+            {dashboardData?.todayLeaves && dashboardData.todayLeaves.length > 0 ? (
               <div className="divide-y divide-gray-100">
                 {dashboardData.todayLeaves.map((leave) => (
                   <div key={leave.id} className="p-4 flex items-center">
@@ -217,8 +245,8 @@ function ManagerDashboardPage() {
                           : `${leave.start_date} 至 ${leave.end_date}`}
                       </p>
                     </div>
-                    <span className={`px-2 py-1 text-xs rounded-full ${getLeaveTypeColor(leave.leave_type)}`}>
-                      {getLeaveTypeName(leave.leave_type)}
+                    <span className={`px-2 py-1 text-xs rounded-full ${getLeaveTypeColor(leave.leave_type as LeaveType)}`}>
+                      {getLeaveTypeName(leave.leave_type as LeaveType)}
                     </span>
                   </div>
                 ))}
@@ -294,6 +322,6 @@ function ManagerDashboardPage() {
       </div>
     </div>
   );
-}
+};
 
 export default ManagerDashboardPage;

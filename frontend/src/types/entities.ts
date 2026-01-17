@@ -85,6 +85,7 @@ export interface Employee {
   userId: number;
   firstName: string;
   lastName: string;
+  name: string;
   email: string;
   phoneNumber?: string;
   dateOfBirth?: string;
@@ -164,6 +165,7 @@ export interface Leave {
   approvedByName?: string;
   approvedAt?: string;
   rejectionReason?: string;
+  departmentName?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -172,11 +174,14 @@ export interface Leave {
  * Leave balance
  */
 export interface LeaveBalance {
+  type?: LeaveType;
   leaveType: LeaveType;
   totalEntitled: number;
+  total: number;
   used: number;
   pending: number;
   remaining: number;
+  available: number;
   carryOver?: number;
 }
 
@@ -213,6 +218,7 @@ export interface LeaveRequestFormData {
  */
 export interface Department {
   id: number;
+  code?: string;
   name: string;
   description?: string;
   parentId?: number;
@@ -220,6 +226,8 @@ export interface Department {
   managerId?: number;
   managerName?: string;
   employeeCount?: number;
+  sortOrder?: number;
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
 }

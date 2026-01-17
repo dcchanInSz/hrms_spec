@@ -2,11 +2,43 @@ import { useState, useEffect } from 'react';
 import { reportAPI } from '@/services/api';
 import ExportButton from '@/components/ExportButton';
 
-function ManagerAnalyticsPage() {
-  const [analytics, setAnalytics] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [dateRange, setDateRange] = useState({
+interface DateRange {
+  start_date: string;
+  end_date: string;
+}
+
+interface AnalyticsData {
+  team_size: number;
+  member_stats?: {
+    active: number;
+  };
+  leave_summary?: Array<{
+    leave_type: string;
+    count: number;
+    total_days: number;
+  }>;
+  members?: Array<{
+    id: number;
+    name: string;
+    department?: string;
+    position?: string;
+    hire_date?: string;
+  }>;
+  upcoming_leaves?: Array<{
+    id: number;
+    employee_name: string;
+    start_date: string;
+    end_date: string;
+    leave_type: string;
+    days: number;
+  }>;
+}
+
+const ManagerAnalyticsPage: React.FC = () => {
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange>({
     start_date: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
     end_date: new Date().toISOString().split('T')[0],
   });
@@ -15,9 +47,9 @@ function ManagerAnalyticsPage() {
     const fetchAnalytics = async () => {
       try {
         setLoading(true);
-        const response = await reportAPI.getTeamAnalytics(dateRange);
-        setAnalytics(response.data);
-      } catch (err) {
+        const response = await reportAPI.getTeamAnalytics();
+        setAnalytics(response.data as AnalyticsData);
+      } catch (err: any) {
         console.error('Failed to fetch team analytics:', err);
         setError(err.message || '获取团队分析数据失败');
       } finally {
@@ -28,18 +60,18 @@ function ManagerAnalyticsPage() {
     fetchAnalytics();
   }, [dateRange]);
 
-  const getLeaveTypeName = (type) => {
-    const names = {
+  const getLeaveTypeName = (type: string): string => {
+    const typeMap: Record<string, string> = {
       annual: '年假',
       sick: '病假',
       personal: '事假',
       other: '其他',
     };
-    return names[type] || type;
+    return typeMap[type] || type;
   };
 
-  const getLeaveTypeColor = (type) => {
-    const colors = {
+  const getLeaveTypeColor = (type: string): string => {
+    const colors: Record<string, string> = {
       annual: 'bg-blue-100 text-blue-800',
       sick: 'bg-red-100 text-red-800',
       personal: 'bg-yellow-100 text-yellow-800',
@@ -48,13 +80,13 @@ function ManagerAnalyticsPage() {
     return colors[type] || colors.other;
   };
 
-  const formatNumber = (num) => {
-    if (num === null || num === undefined) {return '0';}
+  const formatNumber = (num: number | null | undefined): string => {
+    if (num === null || num === undefined) return '0';
     return Number(num).toLocaleString();
   };
 
-  const handleDateChange = (field, value) => {
-    setDateRange((prev) => ({ ...prev, [field]: value }));
+  const handleDateChange = (field: keyof DateRange, value: string) => {
+    setDateRange({ ...dateRange, [field]: value });
   };
 
   if (loading) {
@@ -164,7 +196,7 @@ function ManagerAnalyticsPage() {
               <div className="ml-4">
                 <p className="text-sm text-gray-500">已批准天数</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {formatNumber(analytics?.leave_summary?.reduce((sum, l) => sum + parseFloat(l.total_days || 0), 0))}
+                  {formatNumber(analytics?.leave_summary?.reduce((sum, l) => sum + parseFloat(l.total_days?.toString() || '0'), 0))}
                 </p>
               </div>
             </div>
@@ -197,7 +229,7 @@ function ManagerAnalyticsPage() {
             <h3 className="text-lg font-semibold text-gray-900">团队成员</h3>
           </div>
           <div className="card-body p-0">
-            {analytics?.members?.length > 0 ? (
+            {analytics?.members?.length ? (
               <div className="divide-y divide-gray-100">
                 {analytics.members.map((member) => (
                   <div key={member.id} className="p-4 flex items-center">
@@ -238,7 +270,7 @@ function ManagerAnalyticsPage() {
             <h3 className="text-lg font-semibold text-gray-900">请假类型分布</h3>
           </div>
           <div className="card-body p-0">
-            {analytics?.leave_summary?.length > 0 ? (
+            {analytics?.leave_summary?.length ? (
               <div className="divide-y divide-gray-100">
                 {analytics.leave_summary.map((leave) => (
                   <div key={leave.leave_type} className="p-4 flex items-center justify-between">
@@ -275,7 +307,7 @@ function ManagerAnalyticsPage() {
             <h3 className="text-lg font-semibold text-gray-900">即将请假 (未来 14 天)</h3>
           </div>
           <div className="card-body p-0">
-            {analytics?.upcoming_leaves?.length > 0 ? (
+            {analytics?.upcoming_leaves?.length ? (
               <div className="divide-y divide-gray-100">
                 {analytics.upcoming_leaves.map((leave) => (
                   <div key={leave.id} className="p-4 flex items-center justify-between">
@@ -320,6 +352,6 @@ function ManagerAnalyticsPage() {
       </div>
     </div>
   );
-}
+};
 
 export default ManagerAnalyticsPage;

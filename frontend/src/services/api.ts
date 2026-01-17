@@ -205,6 +205,9 @@ export const notificationAPI = {
 
   markAllAsRead: () =>
     api.put('/notifications/read-all'),
+
+  deleteNotification: (id: number) =>
+    api.delete(`/notifications/${id}`),
 };
 
 // 部门 API

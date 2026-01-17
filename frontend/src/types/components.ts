@@ -89,7 +89,7 @@ export interface ModalProps {
   title?: string;
   children?: ReactNode;
   footer?: ReactNode;
-  size?: 'small' | 'medium' | 'large' | 'xl' | 'full';
+  size?: 'small' | 'medium' | 'large' | 'lg' | 'xl' | 'full';
   className?: string;
   showClose?: boolean;
 }

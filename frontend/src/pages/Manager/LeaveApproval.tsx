@@ -1,16 +1,25 @@
 import { useState, useEffect } from 'react';
 import { leaveAPI } from '@/services/api';
 import { useNotification } from '@/contexts/NotificationContext';
+import { Leave, LeaveStatus, LeaveType } from '@/types/entities';
 
-function LeaveApprovalPage() {
-  const [pendingApprovals, setPendingApprovals] = useState([]);
-  const [allLeaves, setAllLeaves] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('pending');
-  const [processingId, setProcessingId] = useState(null);
-  const [rejectModal, setRejectModal] = useState({ open: false, leave: null, reason: '' });
-  const { showNotification } = useNotification();
+type RejectModal = {
+  open: boolean;
+  leave: Leave | null;
+  reason: string;
+};
+
+type TabType = 'pending' | 'approved' | 'rejected';
+
+const LeaveApprovalPage: React.FC = () => {
+  const [pendingApprovals, setPendingApprovals] = useState<Leave[]>([]);
+  const [allLeaves, setAllLeaves] = useState<Leave[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>('pending');
+  const [processingId, setProcessingId] = useState<number | null>(null);
+  const [rejectModal, setRejectModal] = useState<RejectModal>({ open: false, leave: null, reason: '' });
+  const { addNotification } = useNotification();
 
   useEffect(() => {
     fetchApprovals();
@@ -21,14 +30,14 @@ function LeaveApprovalPage() {
       setLoading(true);
       if (activeTab === 'pending') {
         const response = await leaveAPI.getPendingApprovals();
-        setPendingApprovals(response.data || []);
+        setPendingApprovals(response.data as Leave[] || []);
         setAllLeaves([]);
       } else {
         const response = await leaveAPI.getTeamLeaves({ status: activeTab, limit: 50 });
-        setAllLeaves(response.data || []);
+        setAllLeaves(response.data as Leave[] || []);
         setPendingApprovals([]);
       }
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || '获取请假数据失败');
       console.error('Failed to fetch approvals:', err);
     } finally {
@@ -36,14 +45,14 @@ function LeaveApprovalPage() {
     }
   };
 
-  const handleApprove = async (id) => {
+  const handleApprove = async (id: number) => {
     try {
       setProcessingId(id);
-      await leaveAPI.approve(id);
-      showNotification('审批通过', 'success');
+      await leaveAPI.approve(id, {});
+      addNotification({ title: '成功', message: '审批通过', type: 'success' });
       fetchApprovals();
-    } catch (err) {
-      showNotification(err.message || '审批失败', 'error');
+    } catch (err: any) {
+      addNotification({ title: '错误', message: err.message || '审批失败', type: 'error' });
     } finally {
       setProcessingId(null);
     }
@@ -51,64 +60,74 @@ function LeaveApprovalPage() {
 
   const handleReject = async () => {
     if (!rejectModal.reason.trim()) {
-      showNotification('请填写拒绝原因', 'error');
+      addNotification({ title: '错误', message: '请填写拒绝原因', type: 'error' });
       return;
     }
 
     try {
-      setProcessingId(rejectModal.leave.id);
-      await leaveAPI.reject(rejectModal.leave.id, rejectModal.reason);
-      showNotification('已拒绝申请', 'success');
+      setProcessingId(rejectModal.leave?.id || null);
+      await leaveAPI.reject(rejectModal.leave?.id || 0, rejectModal.reason);
+      addNotification({ title: '成功', message: '已拒绝申请', type: 'success' });
       setRejectModal({ open: false, leave: null, reason: '' });
       fetchApprovals();
-    } catch (err) {
-      showNotification(err.message || '拒绝失败', 'error');
+    } catch (err: any) {
+      addNotification({ title: '错误', message: err.message || '拒绝失败', type: 'error' });
     } finally {
       setProcessingId(null);
     }
   };
 
-  const getLeaveTypeName = (type) => {
-    const names = {
-      annual: '年假',
-      sick: '病假',
-      personal: '事假',
-      other: '其他',
+  const getLeaveTypeName = (type: LeaveType): string => {
+    const names: Record<LeaveType, string> = {
+      [LeaveType.Annual]: '年假',
+      [LeaveType.Sick]: '病假',
+      [LeaveType.Personal]: '事假',
+      [LeaveType.Maternity]: '产假',
+      [LeaveType.Paternity]: '陪产假',
+      [LeaveType.Bereavement]: '丧假',
+      [LeaveType.Study]: '学习假',
+      [LeaveType.Unpaid]: '无薪假',
     };
     return names[type] || type;
   };
 
-  const getLeaveTypeColor = (type) => {
-    const colors = {
-      annual: 'bg-blue-100 text-blue-800',
-      sick: 'bg-red-100 text-red-800',
-      personal: 'bg-yellow-100 text-yellow-800',
-      other: 'bg-gray-100 text-gray-800',
+  const getLeaveTypeColor = (type: LeaveType): string => {
+    const colors: Record<LeaveType, string> = {
+      [LeaveType.Annual]: 'bg-blue-100 text-blue-800',
+      [LeaveType.Sick]: 'bg-red-100 text-red-800',
+      [LeaveType.Personal]: 'bg-yellow-100 text-yellow-800',
+      [LeaveType.Maternity]: 'bg-purple-100 text-purple-800',
+      [LeaveType.Paternity]: 'bg-indigo-100 text-indigo-800',
+      [LeaveType.Bereavement]: 'bg-gray-100 text-gray-800',
+      [LeaveType.Study]: 'bg-green-100 text-green-800',
+      [LeaveType.Unpaid]: 'bg-orange-100 text-orange-800',
     };
-    return colors[type] || colors.other;
+    return colors[type] || colors[LeaveType.Personal];
   };
 
-  const getStatusBadge = (status) => {
-    const badges = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800',
-      archived: 'bg-gray-100 text-gray-800',
+  const getStatusBadge = (status: LeaveStatus) => {
+    const badges: Record<LeaveStatus, string> = {
+      [LeaveStatus.Pending]: 'bg-yellow-100 text-yellow-800',
+      [LeaveStatus.Approved]: 'bg-green-100 text-green-800',
+      [LeaveStatus.Rejected]: 'bg-red-100 text-red-800',
+      [LeaveStatus.Cancelled]: 'bg-gray-100 text-gray-800',
+      [LeaveStatus.Completed]: 'bg-blue-100 text-blue-800',
     };
-    const labels = {
-      pending: '待审批',
-      approved: '已批准',
-      rejected: '已拒绝',
-      archived: '已撤回',
+    const labels: Record<LeaveStatus, string> = {
+      [LeaveStatus.Pending]: '待审批',
+      [LeaveStatus.Approved]: '已批准',
+      [LeaveStatus.Rejected]: '已拒绝',
+      [LeaveStatus.Cancelled]: '已撤回',
+      [LeaveStatus.Completed]: '已完成',
     };
     return (
-      <span className={`px-2 py-1 text-xs rounded-full ${badges[status] || badges.pending}`}>
+      <span className={`px-2 py-1 text-xs rounded-full ${badges[status] || badges[LeaveStatus.Pending]}`}>
         {labels[status] || status}
       </span>
     );
   };
 
-  const formatDate = (date) => {
+  const formatDate = (date: string | undefined): string => {
     if (!date) return '-';
     return new Date(date).toLocaleDateString('zh-CN');
   };
@@ -141,7 +160,7 @@ function LeaveApprovalPage() {
           {['pending', 'approved', 'rejected'].map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => setActiveTab(tab as TabType)}
               className={`
                 py-4 px-1 border-b-2 font-medium text-sm transition-colors
                 ${
@@ -172,17 +191,17 @@ function LeaveApprovalPage() {
                       <div className="flex items-center space-x-3 mb-2">
                         <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
                           <span className="text-primary-700 font-medium">
-                            {leave.employee_name?.charAt(0) || 'U'}
+                            {leave.employeeName?.charAt(0) || 'U'}
                           </span>
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{leave.employee_name}</p>
+                          <p className="font-medium text-gray-900">{leave.employeeName}</p>
                           <p className="text-sm text-gray-500">
-                            {leave.employee_no} · {leave.department_name || '未知部门'}
+                            {leave.employeeId} · {leave.departmentName || '未知部门'}
                           </p>
                         </div>
-                        <span className={`px-2 py-1 text-xs rounded-full ${getLeaveTypeColor(leave.leave_type)}`}>
-                          {getLeaveTypeName(leave.leave_type)}
+                        <span className={`px-2 py-1 text-xs rounded-full ${getLeaveTypeColor(leave.leaveType)}`}>
+                          {getLeaveTypeName(leave.leaveType)}
                         </span>
                         {getStatusBadge(leave.status)}
                       </div>
@@ -191,16 +210,16 @@ function LeaveApprovalPage() {
                         <div>
                           <p className="text-gray-500">请假时间</p>
                           <p className="text-gray-900">
-                            {formatDate(leave.start_date)} 至 {formatDate(leave.end_date)}
+                            {formatDate(leave.startDate)} 至 {formatDate(leave.endDate)}
                           </p>
                         </div>
                         <div>
                           <p className="text-gray-500">请假天数</p>
-                          <p className="text-gray-900 font-medium">{leave.days} 天</p>
+                          <p className="text-gray-900 font-medium">{leave.totalDays} 天</p>
                         </div>
                         <div>
                           <p className="text-gray-500">申请时间</p>
-                          <p className="text-gray-900">{formatDate(leave.created_at)}</p>
+                          <p className="text-gray-900">{formatDate(leave.createdAt)}</p>
                         </div>
                       </div>
 
@@ -213,18 +232,18 @@ function LeaveApprovalPage() {
                         </div>
                       )}
 
-                      {leave.rejection_reason && leave.status === 'rejected' && (
+                      {leave.rejectionReason && leave.status === LeaveStatus.Rejected && (
                         <div className="mt-3">
                           <p className="text-sm text-red-500">拒绝原因</p>
                           <p className="text-sm text-red-700 mt-1 p-3 bg-red-50 rounded-lg">
-                            {leave.rejection_reason}
+                            {leave.rejectionReason}
                           </p>
                         </div>
                       )}
                     </div>
 
                     {/* 操作按钮 */}
-                    {leave.status === 'pending' && (
+                    {leave.status === LeaveStatus.Pending && (
                       <div className="flex items-center space-x-3 ml-4">
                         <button
                           onClick={() => handleApprove(leave.id)}
@@ -278,7 +297,7 @@ function LeaveApprovalPage() {
             <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">拒绝请假申请</h3>
               <p className="text-sm text-gray-600 mb-4">
-                确定要拒绝 <strong>{rejectModal.leave?.employee_name}</strong> 的请假申请吗？
+                确定要拒绝 <strong>{rejectModal.leave?.employeeName}</strong> 的请假申请吗？
               </p>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -300,7 +319,7 @@ function LeaveApprovalPage() {
                 </button>
                 <button
                   onClick={handleReject}
-                  disabled={processingId}
+                  disabled={processingId !== null}
                   className="btn btn-danger"
                 >
                   {processingId ? '处理中...' : '确认拒绝'}
@@ -312,6 +331,6 @@ function LeaveApprovalPage() {
       )}
     </div>
   );
-}
+};
 
 export default LeaveApprovalPage;

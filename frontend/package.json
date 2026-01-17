@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:check": "npm run type-check && vite build",
+    "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
     "test": "vitest --coverage",
     "test:watch": "vitest",

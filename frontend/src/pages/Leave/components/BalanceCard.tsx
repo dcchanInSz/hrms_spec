@@ -1,10 +1,16 @@
 import { useMemo } from 'react';
+import { LeaveBalance } from '@/types/entities';
+
+interface BalanceCardProps {
+  balance: LeaveBalance;
+  compact?: boolean;
+}
 
 /**
  * BalanceCard Component
  * 显示请假余额卡片
  */
-function BalanceCard({ balance, compact = false }) {
+function BalanceCard({ balance, compact = false }: BalanceCardProps) {
   const { type, total = 0, used = 0, carryover = 0, available = 0 } = balance || {};
 
   const leaveTypeInfo = useMemo(() => {

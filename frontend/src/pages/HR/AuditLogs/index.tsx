@@ -3,25 +3,40 @@ import { auditAPI } from '@/services/api';
 import Table from '@/components/Table';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
+import { AuditLog } from '@/types/api';
 
-function HRAuditLogsPage() {
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
+interface AuditLogFilters {
+  action: string;
+  entity_type: string;
+  start_date: string;
+  end_date: string;
+}
+
+interface PaginationState {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+const HRAuditLogsPage: React.FC = () => {
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
     limit: 20,
     total: 0,
     totalPages: 0,
   });
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<AuditLogFilters>({
     action: '',
     entity_type: '',
     start_date: '',
     end_date: '',
   });
 
-  const [selectedLog, setSelectedLog] = useState(null);
-  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState<boolean>(false);
 
   // 加载审计日志
   const loadLogs = async () => {
@@ -38,7 +53,7 @@ function HRAuditLogsPage() {
         total: response.pagination?.total || 0,
         totalPages: response.pagination?.totalPages || 0,
       }));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load audit logs:', err);
     } finally {
       setLoading(false);
@@ -49,7 +64,7 @@ function HRAuditLogsPage() {
     loadLogs();
   }, [pagination.page, filters]);
 
-  const actionLabels = {
+  const actionLabels: Record<string, string> = {
     login: '登录',
     logout: '登出',
     create: '创建',
@@ -62,7 +77,7 @@ function HRAuditLogsPage() {
     password_change: '修改密码',
   };
 
-  const entityTypeLabels = {
+  const entityTypeLabels: Record<string, string> = {
     employee: '员工',
     department: '部门',
     position: '职位',
@@ -71,8 +86,8 @@ function HRAuditLogsPage() {
     notification: '通知',
   };
 
-  const getActionBadge = (action) => {
-    const actionColors = {
+  const getActionBadge = (action: string) => {
+    const actionColors: Record<string, string> = {
       login: 'badge-success',
       logout: 'badge-gray',
       create: 'badge-primary',
@@ -93,58 +108,65 @@ function HRAuditLogsPage() {
 
   const columns = [
     {
+      key: 'created_at',
       title: '操作时间',
       dataIndex: 'created_at',
       width: '180px',
-      render: (value) => new Date(value).toLocaleString('zh-CN'),
+      render: (value: string) => new Date(value).toLocaleString('zh-CN'),
     },
     {
+      key: 'user_name',
       title: '操作人',
       dataIndex: 'user_name',
-      render: (value, record) => (
+      render: (value: string, record: AuditLog) => (
         <div>
           <span className="font-medium">{value || '系统'}</span>
-          {record.user_email && (
-            <p className="text-sm text-gray-500">{record.user_email}</p>
+          {record.userEmail && (
+            <p className="text-sm text-gray-500">{record.userEmail}</p>
           )}
         </div>
       ),
     },
     {
+      key: 'action',
       title: '操作类型',
       dataIndex: 'action',
       width: '120px',
-      render: (value) => getActionBadge(value),
+      render: (value: string) => getActionBadge(value),
     },
     {
+      key: 'entity_type',
       title: '操作对象',
       dataIndex: 'entity_type',
       width: '120px',
-      render: (value) => (
+      render: (value: string) => (
         <span>{entityTypeLabels[value] || value}</span>
       ),
     },
     {
+      key: 'entity_id',
       title: '对象ID',
       dataIndex: 'entity_id',
       width: '200px',
-      render: (value) => (
+      render: (value: string) => (
         <span className="text-gray-500 font-mono text-sm">
           {value?.substring(0, 8)}...
         </span>
       ),
     },
     {
+      key: 'ip_address',
       title: 'IP 地址',
       dataIndex: 'ip_address',
       width: '140px',
-      render: (value) => <span className="text-gray-500">{value || '-'}</span>,
+      render: (value: string) => <span className="text-gray-500">{value || '-'}</span>,
     },
     {
+      key: 'actions',
       title: '操作',
       dataIndex: 'actions',
       width: '80px',
-      render: (_, record) => (
+      render: (_: any, record: AuditLog) => (
         <button
           onClick={() => {
             setSelectedLog(record);
@@ -235,8 +257,6 @@ function HRAuditLogsPage() {
             columns={columns}
             data={logs}
             loading={loading}
-            emptyMessage="暂无审计日志"
-            rowKey="id"
           />
         </div>
 
@@ -281,13 +301,13 @@ function HRAuditLogsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm text-gray-500">操作时间</label>
-                <p className="font-medium">{new Date(selectedLog.created_at).toLocaleString('zh-CN')}</p>
+                <p className="font-medium">{new Date(selectedLog.createdAt).toLocaleString('zh-CN')}</p>
               </div>
               <div>
                 <label className="block text-sm text-gray-500">操作人</label>
-                <p className="font-medium">{selectedLog.user_name || '系统'}</p>
-                {selectedLog.user_email && (
-                  <p className="text-sm text-gray-500">{selectedLog.user_email}</p>
+                <p className="font-medium">{selectedLog.userName || '系统'}</p>
+                {selectedLog.userEmail && (
+                  <p className="text-sm text-gray-500">{selectedLog.userEmail}</p>
                 )}
               </div>
               <div>
@@ -296,37 +316,37 @@ function HRAuditLogsPage() {
               </div>
               <div>
                 <label className="block text-sm text-gray-500">操作对象</label>
-                <p className="font-medium">{entityTypeLabels[selectedLog.entity_type] || selectedLog.entity_type}</p>
+                <p className="font-medium">{entityTypeLabels[selectedLog.entityType] || selectedLog.entityType}</p>
               </div>
               <div className="col-span-2">
                 <label className="block text-sm text-gray-500">对象ID</label>
-                <p className="font-mono text-sm bg-gray-100 p-2 rounded">{selectedLog.entity_id}</p>
+                <p className="font-mono text-sm bg-gray-100 p-2 rounded">{selectedLog.entityId}</p>
               </div>
               <div>
                 <label className="block text-sm text-gray-500">IP 地址</label>
-                <p className="font-medium">{selectedLog.ip_address || '-'}</p>
+                <p className="font-medium">{selectedLog.ipAddress || '-'}</p>
               </div>
               <div>
                 <label className="block text-sm text-gray-500">User Agent</label>
-                <p className="font-medium text-sm truncate">{selectedLog.user_agent || '-'}</p>
+                <p className="font-medium text-sm truncate">{selectedLog.userAgent || '-'}</p>
               </div>
             </div>
 
             {/* 变更对比 */}
-            {(selectedLog.old_value || selectedLog.new_value) && (
+            {(selectedLog.oldValues || selectedLog.newValues) && (
               <div className="border-t pt-4 mt-4">
                 <h4 className="font-medium mb-3">变更详情</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-red-50 p-3 rounded-lg">
                     <label className="block text-sm text-red-600 mb-1">旧值</label>
                     <pre className="text-sm text-red-800 overflow-auto max-h-40">
-                      {JSON.stringify(selectedLog.old_value, null, 2) || '-'}
+                      {JSON.stringify(selectedLog.oldValues, null, 2) || '-'}
                     </pre>
                   </div>
                   <div className="bg-green-50 p-3 rounded-lg">
                     <label className="block text-sm text-green-600 mb-1">新值</label>
                     <pre className="text-sm text-green-800 overflow-auto max-h-40">
-                      {JSON.stringify(selectedLog.new_value, null, 2) || '-'}
+                      {JSON.stringify(selectedLog.newValues, null, 2) || '-'}
                     </pre>
                   </div>
                 </div>
@@ -337,6 +357,6 @@ function HRAuditLogsPage() {
       </Modal>
     </div>
   );
-}
+};
 
 export default HRAuditLogsPage;

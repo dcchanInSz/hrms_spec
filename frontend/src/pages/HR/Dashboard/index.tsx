@@ -1,12 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { reportAPI, employeeAPI, departmentAPI } from '@/services/api';
+import { reportAPI, employeeAPI } from '@/services/api';
+import { HRDashboard } from '@/types/api';
+import { Employee } from '@/types/entities';
 
-function HRDashboardPage() {
-  const [stats, setStats] = useState(null);
-  const [recentEmployees, setRecentEmployees] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+interface RecentEmployee {
+  id: number;
+  name: string;
+  department_name?: string;
+  position_title?: string;
+  status: string;
+}
+
+const HRDashboardPage: React.FC = () => {
+  const [stats, setStats] = useState<HRDashboard | null>(null);
+  const [recentEmployees, setRecentEmployees] = useState<RecentEmployee[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -15,9 +25,9 @@ function HRDashboardPage() {
           reportAPI.getHRDashboard().catch(() => ({ data: null })),
           employeeAPI.getEmployees({ limit: 5 }).catch(() => ({ data: [] })),
         ]);
-        setStats(statsRes.data);
-        setRecentEmployees(employeesRes.data?.data || []);
-      } catch (err) {
+        setStats(statsRes.data as HRDashboard);
+        setRecentEmployees((employeesRes.data as any)?.data || []);
+      } catch (err: any) {
         console.error('Failed to fetch dashboard data:', err);
         setError(err.message || '获取仪表盘数据失败');
       } finally {
@@ -28,13 +38,13 @@ function HRDashboardPage() {
     fetchDashboardData();
   }, []);
 
-  const getStatusBadge = (status) => {
-    const badges = {
+  const getStatusBadge = (status: string) => {
+    const badges: Record<string, string> = {
       active: 'badge-success',
       inactive: 'badge-gray',
       pending: 'badge-warning',
     };
-    const labels = {
+    const labels: Record<string, string> = {
       active: '在职',
       inactive: '离职',
       pending: '待入职',
@@ -115,7 +125,7 @@ function HRDashboardPage() {
               <div className="ml-4">
                 <p className="text-sm text-gray-500">部门数量</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {stats?.totalDepartments || 0}
+                  {stats?.departmentCount || 0}
                 </p>
               </div>
             </div>
@@ -244,6 +254,6 @@ function HRDashboardPage() {
       </div>
     </div>
   );
-}
+};
 
 export default HRDashboardPage;
