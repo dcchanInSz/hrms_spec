@@ -124,6 +124,52 @@ class LeaveService {
   }
 
   /**
+   * 获取请假类型列表
+   */
+  static async getLeaveTypes(): Promise<any[]> {
+    return [
+      { value: 'annual', label: '年假' },
+      { value: 'sick', label: '病假' },
+      { value: 'personal', label: '事假' },
+      { value: 'maternity', label: '产假' },
+      { value: 'paternity', label: '陪产假' },
+      { value: 'bereavement', label: '丧假' },
+      { value: 'study', label: '学习假' },
+      { value: 'unpaid', label: '无薪假' },
+    ];
+  }
+
+  /**
+   * 获取请假余额
+   */
+  static async getBalance(employeeId: string | number): Promise<any[]> {
+    const balances = await LeaveBalanceModel.getCurrentBalances(employeeId);
+    return balances;
+  }
+
+  /**
+   * 获取请假政策
+   */
+  static async getPolicies(): Promise<any[]> {
+    return LeavePolicyModel.findAll();
+  }
+
+  /**
+   * 获取请假类型名称
+   */
+  private static getLeaveTypeName(type: string): string {
+    const typeMap: any = {
+      annual: '年假',
+      sick: '病假',
+      personal: '事假',
+      maternity: '产假',
+      paternity: '陪产假',
+      unpaid: '无薪假',
+    };
+    return typeMap[type] || type;
+  }
+
+  /**
    * 获取待审批列表 (经理)
    */
   static async getPendingApprovals(managerId: string | number): Promise<any[]> {

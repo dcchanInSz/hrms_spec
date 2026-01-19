@@ -102,11 +102,11 @@ async function seed() {
 
     // 创建请假政策
     await client.query(`
-      INSERT INTO leave_policies (leave_type, default_days, carryover_limit, requires_approval, advance_notice_days) VALUES
-      ('annual', 10, 5, TRUE, 3),
-      ('sick', 10, 0, TRUE, 0),
-      ('personal', 5, 0, TRUE, 2),
-      ('other', 3, 0, TRUE, 5)
+      INSERT INTO leave_policies (leave_type, name, default_days, carryover_limit, requires_approval, advance_notice_days) VALUES
+      ('annual', '年假', 10, 5, TRUE, 3),
+      ('sick', '病假', 10, 0, TRUE, 0),
+      ('personal', '事假', 5, 0, TRUE, 2),
+      ('other', '其他', 3, 0, TRUE, 5)
       ON CONFLICT (leave_type) DO NOTHING
     `);
     console.log('Leave policies created');
